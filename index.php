@@ -60,6 +60,7 @@
 	define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : (getenv('CI_ENV') ?: 'development'));
 
 	define('SITE_NAME', getenv('SITE_NAME') ?: 'Circuit Cart');
+	define('DATABASE_NAME', getenv('DATABASE_NAME'));
 	define('DATABASE_HOSTNAME', getenv('DATABASE_HOSTNAME') ?: 'localhost');
 	define('DATABASE_USERNAME', getenv('DATABASE_USERNAME'));
 	define('DATABASE_PASSWORD', getenv('DATABASE_PASSWORD'));
