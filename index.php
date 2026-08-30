@@ -53,7 +53,13 @@
  *
  * NOTE: If you change these, also change the error_reporting() code below
  */
-	define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : 'development');
+	require_once __DIR__.'/vendor/autoload.php';
+
+	Dotenv\Dotenv::createImmutable(__DIR__)->safeLoad();
+
+	define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : (getenv('CI_ENV') ?: 'development'));
+
+	define('SITE_NAME', getenv('SITE_NAME') ?: 'Circuit Cart');
 
 /*
  *---------------------------------------------------------------
