@@ -1,0 +1,31 @@
+.text-justify {
+  text-align: justify;
+}
+
+/* Clamp product titles to a fixed two-line area so prices and
+   buttons align at the same height across cards. */
+.card-title-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.5rem;
+}
+
+/* Sign-in page (adapted from Bootstrap 5.3 sign-in example) */
+.form-signin {
+  max-width: 330px;
+  padding: 1rem;
+}
+
+/* Sign-up page: narrow on phones, much wider on desktop for 2 columns */
+.form-signin.form-signup {
+  max-width: 460px;
+}
+
+@media (min-width: 768px) {
+  .form-signin.form-signup {
+    max-width: 840px;
+  }
+}
+
