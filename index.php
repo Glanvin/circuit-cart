@@ -315,6 +315,9 @@ switch (ENVIRONMENT)
 
 	define('VIEWPATH', $view_folder.DIRECTORY_SEPARATOR);
 
+	// Load the app base exception class before any controller/helper throws it.
+	require_once APPPATH.'core/AppException.php';
+
 /*
  * --------------------------------------------------------------------
  * LOAD THE BOOTSTRAP FILE
