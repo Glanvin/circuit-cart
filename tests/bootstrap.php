@@ -72,6 +72,7 @@ class FakeSession {
 // ---------------------------------------------------------------------------
 // Minimal CI core stubs
 // ---------------------------------------------------------------------------
+#[\AllowDynamicProperties]
 class CI_Controller {
 	private static $instance;
 
@@ -84,6 +85,7 @@ class CI_Controller {
 	}
 }
 
+#[\AllowDynamicProperties]
 class CI_Model {
 	public function __construct() {
 		log_message('info', 'Model Class Initialized');
