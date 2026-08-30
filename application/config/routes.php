@@ -64,6 +64,7 @@ $route['inventory/stocks/new'] = 'StockController/newSKU';
 $route['auth'] = 'AuthController';
 $route['auth/signin'] = 'AuthController/signin';
 $route['auth/signup'] = 'AuthController/signup';
+$route['auth/signout'] = 'AuthController/signout';
 
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;

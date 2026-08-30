@@ -8,12 +8,12 @@
             <h1 class="h3 mb-3 fw-normal">Please sign in</h1>
 
             <div class="form-floating mb-3">
-                <input type="text" class="form-control" id="username" name="username" placeholder="Username">
+                <input type="text" class="form-control <?= is_invalid('username') ?>" id="username" name="username" value="<?= set_value('username') ?>" placeholder="Username">
                 <label for="username">Username</label>
                 <?= form_error('username', '<div class="invalid-feedback">', '</div>') ?>
             </div>
             <div class="form-floating mb-3">
-                <input type="password" class="form-control" id="password" name="password" placeholder="Password">
+                <input type="password" class="form-control <?= is_invalid('password') ?>" id="password" name="password" value="<?= set_value('password') ?>" placeholder="Password">
                 <label for="password">Password</label>
                 <?= form_error('password', '<div class="invalid-feedback">', '</div>') ?>
             </div>

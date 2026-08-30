@@ -6,15 +6,24 @@ abstract class MY_Controller extends CI_Controller {
 	//Which navbar this controller pages use.
 	protected string $navbar = 'templates/navbar';
 
+	//Role required to access this controller, or NULL for any signed-in user.
+	protected ?string $requiredRole = NULL;
+
 	//Validates the user session on every request.
 	public function __construct()
 	{
 		parent::__construct();
 		try {
 			check_session();
+
+			if ($this->requiredRole && $this->session->userdata('role') !== $this->requiredRole) {
+				throw new Exception('You do not have permission to access this page', 3);
+			}
 		}catch(Exception $e) {
-			$this->toastify->error("{$e->getMessage()} [{$e->getCode()}]");
-			redirect('auth','refresh');	
+			$this->toastify->error($e->getMessage());
+
+			//Code 3 = signed-in user lacking the required role, otherwise invalid session.
+			redirect($e->getCode() === 3 ? 'home' : 'auth', 'refresh');
 		}
 	}
 

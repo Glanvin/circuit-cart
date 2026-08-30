@@ -62,14 +62,14 @@
                 <div class="dropdown">
                     <button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-person-circle fs-5 me-1"></i>
-                        John
+                        <?= html_escape($this->session->userdata('username')) ?>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                         <li><a class="dropdown-item" href="#">My Account</a></li>
                         <li><a class="dropdown-item" href="#">Settings</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
-                            <a href="#" class="btn btn-outline-danger btn-sm border-0 w-100 text-start rounded-0">Sign Out</a>
+                            <button type="button" class="btn btn-outline-danger btn-sm border-0 w-100 text-start rounded-0" data-bs-toggle="modal" data-bs-target="#signOutModal">Sign Out</button>
                         </li>
                     </ul>
                 </div>

@@ -25,10 +25,28 @@
     </footer>
 </div>
 <?php endif;?>
+
+<div class="modal fade" id="signOutModal" tabindex="-1" aria-labelledby="signOutModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="signOutModalLabel">Sign Out</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to sign out?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="<?= site_url('auth/signout') ?>" class="btn btn-danger">Sign Out</a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="<?= base_url('assets/js/bs/bootstrap.bundle.min.js');?>">
 </script>
 <script src="<?= base_url('assets/js/toast.js');?>">
-</script>
 </script>
 </body>
 </html>

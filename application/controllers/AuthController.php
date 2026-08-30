@@ -8,11 +8,18 @@ class AuthController extends CI_Controller {
     {
         try {
             check_session();
-            redirect('home');
+            redirect($this->session->userdata('role') === 'admin' ? 'employee/dashboard' : 'home');
         } catch (Exception $e) {
             $this->toastify->error("{$e->getMessage()} [{$e->getCode()}]");
             $this->signin();
         }
+    }
+
+    public function signout()
+    {
+        $this->session->unset_userdata(array('username', 'role'));
+        $this->toastify->success('You have been signed out.');
+        redirect('auth/signin');
     }
 
     public function signin()
@@ -40,15 +47,16 @@ class AuthController extends CI_Controller {
                         $this->toastify->success("Welcome back {$response['username']}");
                         $this->session->set_userdata('username', $response['username']);
                         $this->session->set_userdata('role', $response['role']);
-                        redirect('home');
+                        redirect($response['role'] === 'admin' ? 'employee/dashboard' : 'home');
                     }else {
                         $this->toastify->error("Invalid credentials passed");
-                        redirect('auth/signin');
                     }
                 }catch(Exception $e) {
                     $this->toastify->error("{$e->getMessage()} [{$e->getCode()}]");
                     $this->signin();
                 }
+            }else {
+                $this->toastify->error('Please correct the highlighted fields');
             }
         }
 
@@ -98,6 +106,7 @@ class AuthController extends CI_Controller {
                     return;
                 }
             }else {
+                $this->toastify->error('Please correct the highlighted fields');
                 $this->load->view('templates/header', $data);
                 $this->load->view('auth/sign_up', $data);
                 return;

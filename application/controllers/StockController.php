@@ -5,6 +5,8 @@ class StockController extends MY_Controller {
 
 	protected string $navbar = 'templates/navbar_employees';
 
+	protected ?string $requiredRole = 'admin';
+
 	public function index()
 	{
 		try {
