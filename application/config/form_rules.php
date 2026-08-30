@@ -8,7 +8,7 @@ $config['user_signup'] = array(
 		'errors' => array(
 			'required' => '%s cannot be blank',
 			'min_length' => '%s must be 3 characters long',
-			'min_length' => '%s too long max length is 20 characters',
+			'max_length' => '%s too long max length is 20 characters',
 			'is_unique' => '%s has already been taken'
 		)
 	),

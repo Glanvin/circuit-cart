@@ -7,7 +7,7 @@ function check_session()
     $CI =& get_instance();
 
     if (empty($CI->session->userdata('username'))) {
-        throw new Exception("The Stored Session is invalid. Please login again", 4);
+        throw new AppException('S01');
     }
 }
 

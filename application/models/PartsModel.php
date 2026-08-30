@@ -15,7 +15,7 @@ class PartsModel extends CI_Model {
 
         // heck if the query itself failed (syntax error, table missing)
         if (!$query) {
-            throw new Exception('Failed to fetch parts.', 1);
+            throw new AppException('Q01');
         }
 
         return $query->result_array();
@@ -28,12 +28,12 @@ class PartsModel extends CI_Model {
 
         //Check if the query failed
         if (!$query) {
-            throw new Exception("Failed to fetch part with ID {$part_id}.", 2);
+            throw new AppException('Q02', ['id' => $part_id]);
         }
 
         //Check if the part actually exists
         if ($query->num_rows() === 0) {
-            throw new Exception("No tech part exists with ID {$part_id}.", 3);
+            throw new AppException('P02', ['id' => $part_id]);
         }
 
         return $query->row_array();

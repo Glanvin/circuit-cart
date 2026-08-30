@@ -17,13 +17,13 @@ abstract class MY_Controller extends CI_Controller {
 			check_session();
 
 			if ($this->requiredRole && $this->session->userdata('role') !== $this->requiredRole) {
-				throw new Exception('You do not have permission to access this page', 3);
+				throw new AppException('P03');
 			}
-		}catch(Exception $e) {
-			$this->toastify->error($e->getMessage());
+		}catch(AppException $e) {
+			$this->toastify->error($e->toToast());
 
-			//Code 3 = signed-in user lacking the required role, otherwise invalid session.
-			redirect($e->getCode() === 3 ? 'home' : 'auth', 'refresh');
+			//P03 = signed-in user lacking the required role, otherwise invalid session.
+			redirect($e->getErrorCode() === 'P03' ? 'home' : 'auth', 'refresh');
 		}
 	}
 

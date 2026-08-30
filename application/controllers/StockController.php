@@ -14,8 +14,8 @@ class StockController extends MY_Controller {
 				'title' => 'Stocks',
 				'parts' => $this->PartsModel->getAllParts(),
 			]);
-		} catch (Exception $e) {
-			$this->toastify->error("{$e->getMessage()} [{$e->getCode()}]");
+		} catch (AppException $e) {
+			$this->toastify->error($e->toToast());
 			$this->render('pages/inventory/stock_table', [
 				'title' => 'Stocks',
 				'parts' => []

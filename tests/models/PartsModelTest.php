@@ -12,6 +12,8 @@ class PartsModelTest extends TestCase {
 		$this->ci = new CI_Controller();
 		$this->db = new FakeDb();
 		$this->ci->db = $this->db;
+		$this->ci->config = new FakeConfig();
+		$this->ci->config->items['error_codes'] = error_codes();
 		$this->model = new PartsModel();
 	}
 
@@ -48,10 +50,14 @@ class PartsModelTest extends TestCase {
 	public function testGetAllPartsThrowsOnQueryFailure() {
 		$this->db->failQuery = TRUE;
 
-		$this->expectException(Exception::class);
-		$this->expectExceptionMessage('Failed to fetch parts.');
-
-		$this->model->getAllParts();
+		try {
+			$this->model->getAllParts();
+			$this->fail('Expected AppException');
+		} catch (AppException $e) {
+			$this->assertSame('Q01', $e->getErrorCode());
+			$this->assertSame('Failed to fetch parts.', $e->getMessage());
+			$this->assertSame('Failed to fetch parts. [Q01]', $e->toToast());
+		}
 	}
 
 	public function testGetPartByIdReturnsRowArray() {
@@ -67,17 +73,25 @@ class PartsModelTest extends TestCase {
 	public function testGetPartByIdThrowsWhenNotFound() {
 		$this->db->rows = [];
 
-		$this->expectException(Exception::class);
-		$this->expectExceptionMessage('No tech part exists with ID 999999.');
-
-		$this->model->getPartById(999999);
+		try {
+			$this->model->getPartById(999999);
+			$this->fail('Expected AppException');
+		} catch (AppException $e) {
+			$this->assertSame('P02', $e->getErrorCode());
+			$this->assertSame('No tech part exists with ID 999999.', $e->getMessage());
+			$this->assertSame('No tech part exists with ID 999999. [P02]', $e->toToast());
+		}
 	}
 
 	public function testGetPartByIdThrowsOnQueryFailure() {
 		$this->db->failQuery = TRUE;
 
-		$this->expectException(Exception::class);
-
-		$this->model->getPartById(100001);
+		try {
+			$this->model->getPartById(100001);
+			$this->fail('Expected AppException');
+		} catch (AppException $e) {
+			$this->assertSame('Q02', $e->getErrorCode());
+			$this->assertSame('Failed to fetch part with ID 100001.', $e->getMessage());
+		}
 	}
 }

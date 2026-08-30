@@ -22,7 +22,7 @@
 		"test:benchmark": "phpunit --configuration phpunit.xml.dist --testsuite Benchmark --verbose",
 		"test:coverage": [
 			"@putenv XDEBUG_MODE=coverage",
-			"phpunit --color=always --coverage-text --configuration tests/travis/sqlite.phpunit.xml"
+			"phpunit --configuration phpunit.xml.dist --coverage-text"
 		]
 	},
 	"require-dev": {

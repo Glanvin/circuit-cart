@@ -15,6 +15,10 @@ define('ENVIRONMENT', 'testing');
 define('CI_VERSION', '3.1.13');
 define('SHOW_DEBUG_BACKTRACE', TRUE);
 
+// Executable/system paths the app may reference.
+define('FCPATH', BASEPATH . '../');
+define('SYSDIR', 'system');
+
 // ---------------------------------------------------------------------------
 // Fake session used by Toastify and auth tests
 // ---------------------------------------------------------------------------
@@ -67,6 +71,22 @@ class FakeSession {
 		}
 		$this->userdata[$key] = $value;
 	}
+
+	/**
+	 * Removes one key, an array of keys, or all userdata.
+	 *
+	 * @param string|array|null $key
+	 */
+	public function unset_userdata($key = NULL) {
+		if ($key === NULL) {
+			$this->userdata = [];
+			return;
+		}
+		$keys = is_array($key) ? $key : [$key];
+		foreach ($keys as $k) {
+			unset($this->userdata[$k]);
+		}
+	}
 }
 
 // ---------------------------------------------------------------------------
@@ -106,6 +126,156 @@ function log_message($level, $message) {
 }
 
 // ---------------------------------------------------------------------------
+// Additional fakes used by controller tests
+// ---------------------------------------------------------------------------
+
+/**
+ * Records view loads instead of rendering them.
+ */
+class FakeLoader {
+	public $viewCalls = [];
+	public $isLoaded = [
+		'database'      => FALSE,
+		'session'       => TRUE,
+		'form_validation' => TRUE,
+		'toastify'      => TRUE,
+	];
+	public $models = [];
+
+	public function view($view, $data = NULL, $return = FALSE) {
+		$this->viewCalls[] = ['view' => $view, 'data' => $data];
+		if ($return) {
+			return '';
+		}
+		return NULL;
+	}
+
+	public function model($model) {
+		$this->models[] = $model;
+		return NULL;
+	}
+}
+
+/**
+ * Canned POST input ($this->input->post()).
+ */
+class FakeInput {
+	public $postData = [];
+
+	public function post($key = NULL, $xss = FALSE) {
+		if ($key === NULL) {
+			return $this->postData;
+		}
+		return $this->postData[$key] ?? NULL;
+	}
+}
+
+/**
+ * Records validation rules and returns a canned run() result.
+ */
+class FakeValidation {
+	public $rules = [];
+	public $runResult = TRUE;
+
+	public function set_rules($rules) {
+		$this->rules[] = $rules;
+		return $this;
+	}
+
+	public function run() {
+		return $this->runResult;
+	}
+
+	public function set_error_delimiters($prefix, $suffix) {
+		return $this;
+	}
+}
+
+/**
+ * Canned config item lookups.
+ */
+class FakeConfig {
+	public $items = [];
+
+	public function item($key = NULL, $index = NULL) {
+		if ($key === NULL) {
+			return $this->items;
+		}
+		return $this->items[$key] ?? NULL;
+	}
+}
+
+/**
+ * Delegate to a specific FakeSession, avoiding the get_instance() capture that
+ * the real Toastify performs. Lets controller tests inspect the exact session
+ * that a controller writes toast flashdata to.
+ */
+class FakeToastify {
+	public $session;
+
+	public function __construct($session) {
+		$this->session = $session;
+	}
+
+	public function success($message) {
+		$this->session->set_flashdata('toast_success', $message);
+	}
+
+	public function error($message) {
+		$this->session->set_flashdata('toast_error', $message);
+	}
+
+	public function info($message) {
+		$this->session->set_flashdata('toast_info', $message);
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Redirect / form helper stubs
+// ---------------------------------------------------------------------------
+
+/**
+ * Set to TRUE to make redirect() record the destination and throw, mimicking
+ * the real CI behaviour where redirect() terminates the request.
+ */
+$GLOBALS['redirect_stop'] = TRUE;
+$GLOBALS['redirect_target'] = NULL;
+
+function redirect($uri = '', $method = 'auto', $code = NULL) {
+	$GLOBALS['redirect_target'] = $uri;
+	if (!empty($GLOBALS['redirect_stop'])) {
+		throw new RedirectException($uri);
+	}
+}
+
+class RedirectException extends RuntimeException {
+	public $uri;
+	public function __construct($uri) {
+		$this->uri = $uri;
+		parent::__construct("Redirected to {$uri}");
+	}
+}
+
+/**
+ * Lets redirect() record the destination without halting execution.
+ */
+function redirect_stop(bool $stop = TRUE): void {
+	$GLOBALS['redirect_stop'] = $stop;
+}
+
+function redirect_target(): ?string {
+	return $GLOBALS['redirect_target'];
+}
+
+function form_error($field = '', $prefix = '', $suffix = '') {
+	$ci = CI_Controller::get_instance();
+	if (isset($ci->validationErrors[$field]) && $ci->validationErrors[$field]) {
+		return $prefix . $ci->validationErrors[$field] . $suffix;
+	}
+	return '';
+}
+
+// ---------------------------------------------------------------------------
 // Load test support fakes
 // ---------------------------------------------------------------------------
 require_once __DIR__ . '/support/FakeDb.php';
@@ -113,11 +283,63 @@ require_once __DIR__ . '/support/FakeDb.php';
 // ---------------------------------------------------------------------------
 // Load the application classes under test
 // ---------------------------------------------------------------------------
+require_once APPPATH . 'core/AppException.php';
 require_once APPPATH . 'libraries/Toastify.php';
 require_once APPPATH . 'models/PartsModel.php';
 require_once APPPATH . 'models/UserModel.php';
+
+// Returns the error_codes mapping loaded from the real config file.
+function error_codes(): array {
+	$config = [];
+	require APPPATH . 'config/error_codes.php';
+	return $config['error_codes'];
+}
 
 // ---------------------------------------------------------------------------
 // Load application helpers
 // ---------------------------------------------------------------------------
 require_once APPPATH . 'helpers/my_helper.php';
+
+// ---------------------------------------------------------------------------
+// Load core + controllers under test
+// ---------------------------------------------------------------------------
+require_once APPPATH . 'core/MY_Controller.php';
+
+require_once APPPATH . 'controllers/AuthController.php';
+require_once APPPATH . 'controllers/BrowseController.php';
+require_once APPPATH . 'controllers/DashboardController.php';
+require_once APPPATH . 'controllers/HomeController.php';
+require_once APPPATH . 'controllers/ManagementController.php';
+require_once APPPATH . 'controllers/StockController.php';
+
+// ---------------------------------------------------------------------------
+// Reset global redirect state once at boot
+// ---------------------------------------------------------------------------
+$GLOBALS['redirect_stop']   = TRUE;
+$GLOBALS['redirect_target'] = NULL;
+
+// ---------------------------------------------------------------------------
+// Build a concrete MY_Controller subclass with session/toastify/db/load
+// injected BEFORE the base constructor runs its session/role check.
+// ---------------------------------------------------------------------------
+function make_my_controller(string $class, $session, $toastify, $db = NULL, $loader = NULL) {
+	$reflection = new ReflectionClass($class);
+	$controller = $reflection->newInstanceWithoutConstructor();
+
+	$controller->session  = $session;
+	$controller->toastify = $toastify;
+	if ($db !== NULL) {
+		$controller->db = $db;
+		$controller->PartsModel = new PartsModel();
+		$controller->UserModel  = new UserModel();
+	}
+	if ($loader !== NULL) {
+		$controller->load = $loader;
+	}
+
+	// Run the real constructor chain (sets the CI singleton, session check, etc.)
+	$ctor = $reflection->getConstructor();
+	$ctor->invoke($controller);
+
+	return $controller;
+}

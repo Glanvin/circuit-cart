@@ -93,14 +93,20 @@ vendor/bin/phpunit --filter testRenderEscapesHtmlInMessage
 ```
 phpunit.xml.dist              # points PHPUnit at the bootstrap, registers test suites
 tests/bootstrap.php           # defines BASEPATH/APPPATH, stubs CI_Controller/CI_Model/get_instance(),
-                              #   provides FakeSession, loads the real app library/model files
+                              #   provides FakeSession, FakeDb, FakeLoader/Input/Validation/Config,
+                              #   a redirect() stub, and loads the real app classes
 tests/support/FakeDb.php      # FakeDb: records where() calls; FakeDbResult: returns canned rows;
                               #   set $db->failQuery = TRUE to simulate a failed query
 tests/libraries/ToastifyTest.php
-tests/models/PartsModelTest.php
+tests/models/                 # PartsModelTest, UserModelTest (SQLi binding, edge cases, concurrency)
+tests/security/               # AuthController + MY_Controller auth, form-rules & route integrity
+tests/controllers/            # render + error-path tests for the page controllers
+tests/helpers/                # check_session() and is_invalid() helper tests
 ```
 
 Key idea from `tests/bootstrap.php`: a plain `CI_Controller` stub stores itself as the singleton, so when `Toastify` calls `get_instance()` it finds our fake controller with a `FakeSession` attached. Likewise, `PartsModel` extends the stubbed `CI_Model`, whose magic `__get` pulls `$this->db` from the same instance — where we've attached a `FakeDb`.
+
+Controllers extend `CI_Controller`/`MY_Controller`, whose constructors validate the session before any method runs. `make_my_controller()` injects the `FakeSession`/`FakeToastify`/`FakeDb`/`FakeLoader` before invoking the constructor, so authorization and `render()` behaviour is testable. `redirect()` is stubbed: it records the destination (assert via `redirect_target()`) and, unless `redirect_stop(FALSE)` is called, throws a `RedirectException` to mimic CI halting the request.
 
 ### Writing a new test
 

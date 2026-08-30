@@ -9,8 +9,8 @@ class AuthController extends CI_Controller {
         try {
             check_session();
             redirect($this->session->userdata('role') === 'admin' ? 'employee/dashboard' : 'home');
-        } catch (Exception $e) {
-            $this->toastify->error("{$e->getMessage()} [{$e->getCode()}]");
+        } catch (AppException $e) {
+            $this->toastify->error($e->toToast());
             $this->signin();
         }
     }
@@ -51,8 +51,8 @@ class AuthController extends CI_Controller {
                     }else {
                         $this->toastify->error("Invalid credentials passed");
                     }
-                }catch(Exception $e) {
-                    $this->toastify->error("{$e->getMessage()} [{$e->getCode()}]");
+                }catch(AppException $e) {
+                    $this->toastify->error($e->toToast());
                     $this->signin();
                 }
             }else {
@@ -99,8 +99,8 @@ class AuthController extends CI_Controller {
                     $this->load->view('auth/sign_up', $data);
                     return;
 
-                }catch(Exception $e) {
-                    $this->toastify->error("{$e->getMessage()} [{$e->getCode()}]");
+                }catch(AppException $e) {
+                    $this->toastify->error($e->toToast());
                     $this->load->view('templates/header', $data);
                     $this->load->view('auth/sign_up', $data);
                     return;

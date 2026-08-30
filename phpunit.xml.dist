@@ -11,9 +11,20 @@
 			<directory>tests/libraries</directory>
 			<directory>tests/models</directory>
 			<directory>tests/security</directory>
+			<directory>tests/controllers</directory>
+			<directory>tests/core</directory>
 		</testsuite>
 		<testsuite name="Benchmark">
 			<directory>tests/benchmark</directory>
 		</testsuite>
 	</testsuites>
+	<coverage>
+		<include>
+			<directory suffix=".php">application/controllers</directory>
+			<directory suffix=".php">application/core</directory>
+			<directory suffix=".php">application/helpers</directory>
+			<directory suffix=".php">application/libraries</directory>
+			<directory suffix=".php">application/models</directory>
+		</include>
+	</coverage>
 </phpunit>
