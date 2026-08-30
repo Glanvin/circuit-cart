@@ -29,7 +29,7 @@
 
             <p class="mt-3 mb-0 text-center">Don't have an account? <a href="<?= site_url('auth/signup') ?>">Sign Up</a></p>
 
-            <p class="mt-3 mb-3 text-body-secondary">Copyright Glavin's Repair Shop</p>
+            <p class="mt-3 mb-3 text-body-secondary">Copyright <?= SITE_NAME ?></p>
         </form>
     </main>
 </div>

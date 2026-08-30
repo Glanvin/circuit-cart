@@ -7,7 +7,7 @@
                 </i>
             </a>
             <span class="mb-3 mb-md-0 text-body-secondary">
-                Glavin's Repair Shop - Copyright 2026
+                <?= SITE_NAME ?> - Copyright 2026
             </span>
         </div>
         <ul class="nav col-md-4 justify-content-end list-unstyled d-flex px-3">

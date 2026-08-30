@@ -1,4 +1,4 @@
-# Glavin's Repair Shop
+# Circuit Cart
 
 An all-in-one web app for a tech repair shop — customers can browse the parts catalog (phone/laptop screens, batteries, Windows licenses, etc.), while employees manage inventory and stock.
 
