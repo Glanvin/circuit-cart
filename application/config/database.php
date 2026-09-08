@@ -88,7 +88,10 @@ $db['default'] = array(
 	'char_set' => 'utf8',
 	'dbcollat' => 'utf8_general_ci',
 	'swap_pre' => '',
-	'encrypt' => FALSE,
+	'encrypt' => [
+		'ssl_ca'     => __DIR__ . '/../../ca.pem',
+		'ssl_verify' => TRUE,
+	],
 	'compress' => FALSE,
 	'stricton' => FALSE,
 	'failover' => array(),
