@@ -92,7 +92,7 @@ $db['default'] = array(
 		'ssl_verify' => FALSE,
 	],
 	'compress' => FALSE,
-	'stricton' => FALSE,
+	'stricton' => NULL,
 	'failover' => array(),
 	'save_queries' => TRUE
 );
