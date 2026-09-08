@@ -89,8 +89,7 @@ $db['default'] = array(
 	'dbcollat' => 'utf8_general_ci',
 	'swap_pre' => '',
 	'encrypt' => [
-		'ssl_ca'     => __DIR__ . '/../../ca.pem',
-		'ssl_verify' => TRUE,
+		'ssl_verify' => FALSE,
 	],
 	'compress' => FALSE,
 	'stricton' => FALSE,
