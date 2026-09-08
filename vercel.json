@@ -1,4 +1,5 @@
 {
+  "installCommand": "composer install --no-dev --prefer-dist",
   "functions": {
     "api/*.php": {
       "runtime": "vercel-php@0.7.3"
