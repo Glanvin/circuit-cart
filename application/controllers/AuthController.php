@@ -6,13 +6,11 @@ class AuthController extends CI_Controller {
     //Entry point for authentication.
     public function index()
     {
-        try {
-            check_session();
+        if ($this->session->userdata('username')) {
             redirect($this->session->userdata('role') === 'admin' ? 'employee/dashboard' : 'home');
-        } catch (AppException $e) {
-            $this->toastify->error($e->toToast());
-            $this->signin();
         }
+
+        $this->signin();
     }
 
     public function signout()

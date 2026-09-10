@@ -61,11 +61,11 @@ class AuthControllerTest extends TestCase {
 		$this->assertSame('home', redirect_target());
 	}
 
-	public function testIndexWithoutValidSessionShowsErrorAndSigninView() {
-		// No username in session -> check_session() throws -> toast + signin view.
+	public function testIndexWithoutValidSessionJustShowsSigninView() {
+		// No username in session -> signin view renders with no session error toast.
 		$this->controller->index();
 
-		$this->assertNotEmpty($this->session->flashdata('toast_error'));
+		$this->assertNull($this->session->flashdata('toast_error'));
 		$views = array_column($this->loader->viewCalls, 'view');
 		$this->assertContains('auth/sign_in', $views);
 	}
