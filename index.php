@@ -57,14 +57,35 @@
 
 	Dotenv\Dotenv::createImmutable(__DIR__)->safeLoad();
 
-	define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : (getenv('CI_ENV') ?: 'development'));
+	if ( ! function_exists('app_env'))
+	{
+		function app_env($key, $default = NULL)
+		{
+			$value = getenv($key);
+			if ($value !== false)
+			{
+				return $value;
+			}
+			if (isset($_ENV[$key]))
+			{
+				return $_ENV[$key];
+			}
+			if (isset($_SERVER[$key]))
+			{
+				return $_SERVER[$key];
+			}
+			return $default;
+		}
+	}
 
-	define('SITE_NAME', getenv('SITE_NAME') ?: 'Circuit Cart');
-	define('DATABASE_NAME', getenv('DATABASE_NAME'));
-	define('DATABASE_HOSTNAME', getenv('DATABASE_HOSTNAME') ?: 'localhost');
-	define('DATABASE_PORT', getenv('DATABASE_PORT') ?: '3306');
-	define('DATABASE_USERNAME', getenv('DATABASE_USERNAME'));
-	define('DATABASE_PASSWORD', getenv('DATABASE_PASSWORD'));
+	define('ENVIRONMENT', app_env('CI_ENV', 'development') ?: 'development');
+
+	define('SITE_NAME', app_env('SITE_NAME', 'Circuit Cart'));
+	define('DATABASE_NAME', app_env('DATABASE_NAME'));
+	define('DATABASE_HOSTNAME', app_env('DATABASE_HOSTNAME', 'localhost'));
+	define('DATABASE_PORT', app_env('DATABASE_PORT', '3306'));
+	define('DATABASE_USERNAME', app_env('DATABASE_USERNAME'));
+	define('DATABASE_PASSWORD', app_env('DATABASE_PASSWORD'));
 
 /*
  *---------------------------------------------------------------

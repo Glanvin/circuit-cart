@@ -24,7 +24,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 |
 */
 $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') ? "https" : "http";
-$config['base_url'] = getenv('BASE_URL') ?: ($protocol . "://" . ($_SERVER['HTTP_HOST'] ?? '') . "/");
+$config['base_url'] = app_env('BASE_URL') ?: ($protocol . "://" . ($_SERVER['HTTP_HOST'] ?? '') . "/");
 
 /*
 |--------------------------------------------------------------------------
