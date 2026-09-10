@@ -62,6 +62,7 @@
 	define('SITE_NAME', getenv('SITE_NAME') ?: 'Circuit Cart');
 	define('DATABASE_NAME', getenv('DATABASE_NAME'));
 	define('DATABASE_HOSTNAME', getenv('DATABASE_HOSTNAME') ?: 'localhost');
+	define('DATABASE_PORT', getenv('DATABASE_PORT') ?: '3306');
 	define('DATABASE_USERNAME', getenv('DATABASE_USERNAME'));
 	define('DATABASE_PASSWORD', getenv('DATABASE_PASSWORD'));
 
