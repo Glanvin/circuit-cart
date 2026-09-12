@@ -57,26 +57,7 @@
 
 	Dotenv\Dotenv::createImmutable(__DIR__)->safeLoad();
 
-	if ( ! function_exists('app_env'))
-	{
-		function app_env($key, $default = NULL)
-		{
-			$value = getenv($key);
-			if ($value !== false)
-			{
-				return $value;
-			}
-			if (isset($_ENV[$key]))
-			{
-				return $_ENV[$key];
-			}
-			if (isset($_SERVER[$key]))
-			{
-				return $_SERVER[$key];
-			}
-			return $default;
-		}
-	}
+	require_once __DIR__.'/application/helpers/env_helper.php';
 
 	define('ENVIRONMENT', app_env('CI_ENV', 'development') ?: 'development');
 
