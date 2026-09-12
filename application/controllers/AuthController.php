@@ -41,7 +41,7 @@ class AuthController extends CI_Controller {
 
                     if(!$response) {
                         $this->toastify->error("User does not exist");
-                    }elseif($response['password'] === $password) {
+                    }elseif(password_verify($password, $response['password'])) {
                         $this->toastify->success("Welcome back {$response['username']}");
                         $this->session->set_userdata('username', $response['username']);
                         $this->session->set_userdata('role', $response['role']);
@@ -75,13 +75,16 @@ class AuthController extends CI_Controller {
 
             if($this->form_validation->run() === true) {
                 try {
+
+                    $hashed_password = password_hash($this->input->post('password', true), PASSWORD_DEFAULT);
+
                     $user = [
                         'username' => strtolower($this->input->post('username', true)),
                         'firstname' => ucfirst($this->input->post('firstname', true)),
                         'middlename' => ucfirst($this->input->post('middlename', true)),
                         'lastname' => ucfirst($this->input->post('lastname', true)),
                         'contactnumber' => $this->input->post('contactnumber', true),
-                        'password' => $this->input->post('password', true),
+                        'password' => $hashed_password,
                         'email' => strtolower($this->input->post('email', true))
                     ];
 
