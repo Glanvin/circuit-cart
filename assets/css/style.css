@@ -29,3 +29,14 @@
   }
 }
 
+.error-bg {
+    background-color: #f8f9fa;
+}
+
+/* Settings page: sticky side navigation */
+.settings-sidebar {
+  position: sticky;
+  top: 1rem;
+  align-self: start;
+}
+
