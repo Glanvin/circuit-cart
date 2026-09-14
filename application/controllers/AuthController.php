@@ -65,7 +65,7 @@ class AuthController extends CI_Controller {
     public function signup()
     {
         $data = [
-            'title'         => 'Sign Up',
+            'title' => 'Sign Up',
             'enable_footer' => false,
         ];
         if($this->input->post('register')) {

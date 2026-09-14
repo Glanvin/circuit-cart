@@ -4,9 +4,6 @@
             <a class="navbar-brand mb-0" href="<?= site_url('') ?>">
                 <?= SITE_NAME ?>
             </a>
-            <a href="<?= site_url('') ?>" class="btn btn-outline-secondary btn-sm rounded-circle p-1 lh-1" aria-label="Exit settings">
-                <i class="bi bi-x-lg"></i>
-            </a>
         </div>
         <nav aria-label="breadcrumb" class="ms-lg-3">
             <ol class="breadcrumb m-0">

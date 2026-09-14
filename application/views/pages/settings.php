@@ -3,13 +3,13 @@
         <!-- Side navigation -->
         <aside class="col-12 col-md-4 col-lg-3 settings-sidebar">
             <div class="nav flex-column nav-pills gap-1">
-                <a class="nav-link active" data-panel="profile" href="javascript:void(0)">
+                <a class="nav-link active" data-panel="profile" href="#profile">
                     <i class="bi bi-person me-2"></i>Profile Settings
                 </a>
-                <a class="nav-link" data-panel="general" href="javascript:void(0)">
+                <a class="nav-link" data-panel="general" href="#general">
                     <i class="bi bi-gear me-2"></i>General Settings
                 </a>
-                <a class="nav-link" href="mailto:support@example.com" target="_blank">
+                <a class="nav-link" href="#" target="_blank">
                     <i class="bi bi-question-circle me-2"></i>Help &amp; Support
                 </a>
             </div>
@@ -45,6 +45,10 @@
                                 <input type="text" class="form-control" id="lastname" value="<?= html_escape($user['lastname'] ?? '') ?>">
                             </div>
                             <div class="col-md-6">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" value="<?= html_escape($user['email'] ?? '') ?>">
+                            </div>
+                            <div class="col-md-6">
                                 <label for="contactnumber" class="form-label">Phone Number</label>
                                 <input type="tel" class="form-control" id="contactnumber" value="<?= html_escape($user['contactnumber'] ?? '') ?>">
                             </div>
@@ -63,15 +67,15 @@
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label for="current-password" class="form-label">Current Password</label>
-                                <input type="password" class="form-control" id="current-password" placeholder="••••••••">
+                                <input type="password" class="form-control" id="current-password">
                             </div>
                             <div class="col-md-4">
                                 <label for="new-password" class="form-label">New Password</label>
-                                <input type="password" class="form-control" id="new-password" placeholder="••••••••">
+                                <input type="password" class="form-control" id="new-password">
                             </div>
                             <div class="col-md-4">
                                 <label for="confirm-password" class="form-label">Confirm New Password</label>
-                                <input type="password" class="form-control" id="confirm-password" placeholder="••••••••">
+                                <input type="password" class="form-control" id="confirm-password">
                             </div>
                         </div>
                         <button type="button" class="btn btn-primary mt-3">Update Password</button>
@@ -122,7 +126,7 @@
                     <div class="form-check form-switch">
                         <input class="form-check-input" type="checkbox" role="switch" id="darkModeToggle" <?= ($this->session->userdata('theme') ?? 'dark') === 'dark' ? 'checked' : '' ?>>
                         <label class="form-check-label" for="darkModeToggle">
-                            <i class="bi bi-moon-stars me-1"></i>Dark Mode
+                           Dark Mode
                         </label>
                     </div>
                     <div class="mt-3 col-md-6">
@@ -130,7 +134,6 @@
                         <select class="form-select" id="language">
                             <option value="en" selected>English</option>
                             <option value="fil">Filipino</option>
-                            <option value="es">Español</option>
                         </select>
                     </div>
                 </div>
@@ -159,26 +162,4 @@
     </div>
 </div>
 
-<script>
-(function () {
-    const links = document.querySelectorAll('.settings-sidebar .nav-link[data-panel]');
-    const panels = document.querySelectorAll('[data-panel-content]');
-    const toggle = document.getElementById('darkModeToggle');
-
-    links.forEach(function (link) {
-        link.addEventListener('click', function () {
-            links.forEach(function (l) { l.classList.remove('active'); });
-            link.classList.add('active');
-            panels.forEach(function (p) {
-                p.classList.toggle('d-none', p.dataset.panelContent !== link.dataset.panel);
-            });
-        });
-    });
-
-    if (toggle) {
-        toggle.addEventListener('change', function () {
-            document.documentElement.setAttribute('data-bs-theme', toggle.checked ? 'dark' : 'light');
-        });
-    }
-})();
-</script>
+<script src="<?= base_url('assets/js/settings.js') ?>"></script>

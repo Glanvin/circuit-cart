@@ -66,5 +66,7 @@ $route['auth/signin'] = 'AuthController/signin';
 $route['auth/signup'] = 'AuthController/signup';
 $route['auth/signout'] = 'AuthController/signout';
 
-$route['404_override'] = '';
+$route['settings'] = 'SettingsController';
+
+$route['404_override'] = 'ErrorController';
 $route['translate_uri_dashes'] = FALSE;
