@@ -1,7 +1,6 @@
 (function () {
     const links = document.querySelectorAll('.settings-sidebar .nav-link[data-panel]');
     const panels = document.querySelectorAll('[data-panel-content]');
-    const toggle = document.getElementById('darkModeToggle');
 
     links.forEach(function (link) {
         link.addEventListener('click', function () {
@@ -12,10 +11,4 @@
             });
         });
     });
-
-    if (toggle) {
-        toggle.addEventListener('change', function () {
-            document.documentElement.setAttribute('data-bs-theme', toggle.checked ? 'dark' : 'light');
-        });
-    }
 })();

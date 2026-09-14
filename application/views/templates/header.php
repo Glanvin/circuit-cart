@@ -1,8 +1,10 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
+$themePreference = !empty($this->session->userdata('theme')) ? $this->session->userdata('theme') : 'light';
+$initialTheme = $themePreference === 'system' ? 'light' : $themePreference;
 ?>
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="<?php if(!empty($this->session->userdata('theme'))) echo $this->session->userdata('theme'); else echo 'dark';?>">
+<html lang="en" data-bs-theme="<?= $initialTheme ?>" data-theme-url="<?= site_url('settings/theme') ?>" data-theme-preference="<?= $themePreference ?>">
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">

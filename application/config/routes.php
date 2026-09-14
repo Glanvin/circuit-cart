@@ -66,6 +66,7 @@ $route['auth/signin'] = 'AuthController/signin';
 $route['auth/signup'] = 'AuthController/signup';
 $route['auth/signout'] = 'AuthController/signout';
 
+$route['settings/theme'] = 'SettingsController/theme';
 $route['settings'] = 'SettingsController';
 
 $route['404_override'] = 'ErrorController';

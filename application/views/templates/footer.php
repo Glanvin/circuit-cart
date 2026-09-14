@@ -46,6 +46,8 @@
 
 <script src="<?= base_url('assets/js/bs/bootstrap.bundle.min.js');?>">
 </script>
+<script src="<?= base_url('assets/js/theme.js');?>">
+</script>
 <script src="<?= base_url('assets/js/toast.js');?>">
 </script>
 </body>

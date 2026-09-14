@@ -123,8 +123,15 @@
                     <i class="bi bi-palette me-1"></i>Appearance
                 </div>
                 <div class="card-body">
+                    <?php $pref = $this->session->userdata('theme') ?? 'light'; ?>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" role="switch" id="systemThemeToggle" <?= $pref === 'system' ? 'checked' : '' ?>>
+                        <label class="form-check-label" for="systemThemeToggle">
+                            Follow System Theme
+                        </label>
+                    </div>
                     <div class="form-check form-switch">
-                        <input class="form-check-input" type="checkbox" role="switch" id="darkModeToggle" <?= ($this->session->userdata('theme') ?? 'dark') === 'dark' ? 'checked' : '' ?>>
+                        <input class="form-check-input" type="checkbox" role="switch" id="darkModeToggle" <?= $pref === 'dark' ? 'checked' : '' ?> <?= $pref === 'system' ? 'disabled' : '' ?>>
                         <label class="form-check-label" for="darkModeToggle">
                            Dark Mode
                         </label>
