@@ -8,7 +8,7 @@ class EmailController extends CI_Controller {
     {
         $data = [
             'subject' => 'Welcome to Circuit Cart',
-            'openning_message' => "Dear Kyla Tagam,",
+            'openning_message' => "Dear User,",
             'main_message' => "We Hope you enjoy our site.",
         ];
 
