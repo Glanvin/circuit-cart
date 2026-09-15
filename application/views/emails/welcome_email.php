@@ -19,7 +19,7 @@
                     <tr>
                         <td style="background:linear-gradient(135deg, #4e7cff 0%, #6a5cff 100%); padding:32px 40px; text-align:center;">
                             <div style="width:56px; height:56px; margin:0 auto 12px; border-radius:50%; background-color:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center;">
-                                <img src="<?= base_url('assets/images/tools-mark.svg') ?>" alt="Circuit Cart" width="30" height="30" style="display:block;" onerror="this.outerHTML='&#x1F6E0;&#xFE0F;';" />
+                                <i class="bi bi-tools" style="font-size:28px; line-height:1; color:#ffffff; font-style:normal;" aria-hidden="true">&#x1F6E0;&#xFE0F;</i>
                             </div>
                             <h1 style="margin:0; color:#ffffff; font-size:28px; font-weight:700; letter-spacing:0.5px;">Circuit Cart</h1>
                             <p style="margin:6px 0 0; color:#dce3ff; font-size:13px;">Smart Shopping, Delivered</p>

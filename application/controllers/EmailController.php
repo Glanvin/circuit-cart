@@ -7,23 +7,23 @@ class EmailController extends CI_Controller {
     {
         $this->load->library('session');
 
-        $last = $this->session->userdata('last_mail_ts');
-        if ($last !== NULL && (time() - $last) < 60) {
-            echo "Please wait before sending again (Gmail rate-limit guard).";
-            return;
-        }
-        $this->session->set_userdata('last_mail_ts', time());
+        // $last = $this->session->userdata('last_mail_ts');
+        // if ($last !== NULL && (time() - $last) < 60) {
+        //     echo "Please wait before sending again (Gmail rate-limit guard).";
+        //     return;
+        // }
+        // $this->session->set_userdata('last_mail_ts', time());
 
         $data = [
-            'subject'         => 'Welcome to Circuit Cart',
+            'subject' => 'Welcome to Circuit Cart',
             'openning_message' => "Dear {$this->session->userdata('username')},",
-            'main_message'    => "We Hope you enjoy our site.",
+            'main_message' => "We Hope you enjoy our site.",
         ];
 
         $message = $this->load->view('emails/welcome_email.php', $data, true);
 
         $this->email->from('2092437@g.cu.edu.ph', 'Circuit Cart');
-        $this->email->to('glavin.code@gmail.com');
+        $this->email->to('2092505@g.cu.edu.ph');
 
         $this->email->subject($data['subject']);
 
