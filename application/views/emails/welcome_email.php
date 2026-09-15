@@ -18,7 +18,9 @@
                     <!-- HEADER -->
                     <tr>
                         <td style="background:linear-gradient(135deg, #4e7cff 0%, #6a5cff 100%); padding:32px 40px; text-align:center;">
-                            <img src="https://i.imgur.com/placeholder.png" alt="Circuit Cart" width="48" style="display:block; margin:0 auto 12px;" onerror="this.style.display='none';">
+                            <div style="width:56px; height:56px; margin:0 auto 12px; border-radius:50%; background-color:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center;">
+                                <img src="<?= base_url('assets/images/tools-mark.svg') ?>" alt="Circuit Cart" width="30" height="30" style="display:block;" onerror="this.outerHTML='&#x1F6E0;&#xFE0F;';" />
+                            </div>
                             <h1 style="margin:0; color:#ffffff; font-size:28px; font-weight:700; letter-spacing:0.5px;">Circuit Cart</h1>
                             <p style="margin:6px 0 0; color:#dce3ff; font-size:13px;">Smart Shopping, Delivered</p>
                         </td>
@@ -42,7 +44,7 @@
                             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
                                 <tr>
                                     <td style="background-color:#4e7cff; border-radius:8px;">
-                                        <a href="#" target="_blank" style="display:inline-block; padding:14px 36px; color:#ffffff; text-decoration:none; font-weight:600; font-size:15px; border-radius:8px;">Start Shopping</a>
+                                        <a href="https://yourstore.com/shop" target="_blank" style="display:inline-block; padding:14px 36px; color:#ffffff; text-decoration:none; font-weight:600; font-size:15px; border-radius:8px;">Start Shopping</a>
                                     </td>
                                 </tr>
                             </table>
