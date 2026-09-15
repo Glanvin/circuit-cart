@@ -39,7 +39,7 @@
                             <!-- CTA BUTTON -->
                             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
                                 <tr>
-                                    <td style="background-color:#4e7cff; border-radius:8px;">
+                                    <td style="background-color:#0dcaf0; border-radius:8px;">
                                         <a href="#" target="_blank" style="display:inline-block; padding:14px 36px; color:#ffffff; text-decoration:none; font-weight:600; font-size:15px; border-radius:8px;">Start Shopping</a>
                                     </td>
                                 </tr>
