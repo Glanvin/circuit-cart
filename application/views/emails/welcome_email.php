@@ -17,12 +17,8 @@
 
                     <!-- HEADER -->
                     <tr>
-                        <td style="background:linear-gradient(135deg, #4e7cff 0%, #6a5cff 100%); padding:32px 40px; text-align:center;">
-                            <div style="width:56px; height:56px; margin:0 auto 12px; border-radius:50%; background-color:rgba(255,255,255,0.18); display:flex; align-items:center; justify-content:center;">
-                                <i class="bi bi-tools" style="font-size:28px; line-height:1; color:#ffffff; font-style:normal;" aria-hidden="true">&#x1F6E0;&#xFE0F;</i>
-                            </div>
-                            <h1 style="margin:0; color:#ffffff; font-size:28px; font-weight:700; letter-spacing:0.5px;">Circuit Cart</h1>
-                            <p style="margin:6px 0 0; color:#dce3ff; font-size:13px;">Smart Shopping, Delivered</p>
+                        <td style="background-color:#0dcaf0; padding:32px 40px; text-align:center;">
+                            <h1 style="margin:0; color:#055160; font-size:28px; font-weight:700; letter-spacing:0.5px;">Circuit Cart</h1>
                         </td>
                     </tr>
 
@@ -44,7 +40,7 @@
                             <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
                                 <tr>
                                     <td style="background-color:#4e7cff; border-radius:8px;">
-                                        <a href="https://yourstore.com/shop" target="_blank" style="display:inline-block; padding:14px 36px; color:#ffffff; text-decoration:none; font-weight:600; font-size:15px; border-radius:8px;">Start Shopping</a>
+                                        <a href="#" target="_blank" style="display:inline-block; padding:14px 36px; color:#ffffff; text-decoration:none; font-weight:600; font-size:15px; border-radius:8px;">Start Shopping</a>
                                     </td>
                                 </tr>
                             </table>
@@ -62,11 +58,11 @@
                     <tr>
                         <td style="padding:24px 40px 32px; text-align:center;">
                             <p style="margin:0 0 10px; color:#9ca3af; font-size:12px; line-height:1.6;">
-                                Circuit Cart &middot; 123 Main Street, City, Country<br>
-                                <a href="mailto:support@circuitcart.com" style="color:#4e7cff; text-decoration:none;">support@circuitcart.com</a> &middot; +63 900 000 0000
+                                Circuit Cart &middot; 019 Corrales Ext, Cagayan de Oro City, Philippines<br>
+                                <a href="mailto:support@circuitcart.com" style="color:#4e7cff; text-decoration:none;">support@circuitcart.com</a> &middot; +63 900 321 3266
                             </p>
                             <p style="margin:0; color:#b8bfcc; font-size:11px;">You received this email because you signed up for Circuit Cart.<br>
-                            <a href="{{unsubscribe_link}}" style="color:#b8bfcc; text-decoration:underline;">Unsubscribe</a></p>
+                            <a href="#" style="color:#b8bfcc; text-decoration:underline;">Unsubscribe</a></p>
                         </td>
                     </tr>
 

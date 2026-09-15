@@ -3,6 +3,18 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class EmailController extends CI_Controller {
 
+
+    public function index()
+    {
+        $data = [
+            'subject' => 'Welcome to Circuit Cart',
+            'openning_message' => "Dear Kyla Tagam,",
+            'main_message' => "We Hope you enjoy our site.",
+        ];
+
+        $this->load->view('emails/welcome_email', $data);
+    }
+
     public function send() 
     {
         $this->load->library('session');
@@ -16,14 +28,14 @@ class EmailController extends CI_Controller {
 
         $data = [
             'subject' => 'Welcome to Circuit Cart',
-            'openning_message' => "Dear {$this->session->userdata('username')},",
+            'openning_message' => "Dear Kyla Tagam,",
             'main_message' => "We Hope you enjoy our site.",
         ];
 
         $message = $this->load->view('emails/welcome_email.php', $data, true);
 
         $this->email->from('2092437@g.cu.edu.ph', 'Circuit Cart');
-        $this->email->to('2092505@g.cu.edu.ph');
+        $this->email->to('2091908@g.cu.edu.ph');
 
         $this->email->subject($data['subject']);
 
