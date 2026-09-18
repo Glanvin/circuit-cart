@@ -46,7 +46,18 @@
                             </div>
                             <div class="col-md-6">
                                 <label for="email" class="form-label">Email</label>
-                                <input type="email" class="form-control" id="email" value="<?= html_escape($user['email'] ?? '') ?>">
+                                <div class="input-group">
+                                    <input type="email" class="form-control" id="email" value="<?= html_escape($user['email'] ?? '') ?>">
+                                    <?php if (!empty($user['verified_email'])): ?>
+                                        <button type="button" class="btn btn-outline-success" disabled>
+                                            <i class="bi bi-check-lg me-1"></i>Verified
+                                        </button>
+                                    <?php else: ?>
+                                        <a href="<?= site_url('auth/verify') ?>" class="btn btn-outline-warning">
+                                            <i class="bi bi-envelope-check me-1"></i>Verify Email
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                             <div class="col-md-6">
                                 <label for="contactnumber" class="form-label">Phone Number</label>

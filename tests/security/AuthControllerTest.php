@@ -26,6 +26,7 @@ class AuthControllerTest extends TestCase {
 		$controller->form_validation = $this->validation = new FakeValidation();
 		$controller->db            = $this->db         = new FakeDb();
 		$controller->load          = $this->loader     = new FakeLoader();
+		$controller->email         = $this->email     = new FakeEmail();
 		$controller->UserModel     = new UserModel();
 
 		$this->config->items['user_signin'] = [
@@ -93,23 +94,29 @@ class AuthControllerTest extends TestCase {
 	public function testSigninSuccessRedirectsAdminToDashboard() {
 		$this->input->postData = ['signin' => '1', 'username' => 'admin1', 'password' => 'secret'];
 		$this->validation->runResult = TRUE;
-		$this->db->rows = [['username' => 'admin1', 'password' => 'secret', 'role' => 'admin']];
+		$this->db->rows = [
+			['username' => 'admin1', 'password' => password_hash('secret', PASSWORD_DEFAULT), 'role' => 'admin', 'email' => 'admin1@example.com'],
+		];
 
 		$this->controller->signin();
 
 		$this->assertSame('admin1', $this->session->userdata('username'));
 		$this->assertSame('admin', $this->session->userdata('role'));
+		$this->assertSame('admin1@example.com', $this->session->userdata('email'));
 		$this->assertSame('employee/dashboard', redirect_target());
 	}
 
 	public function testSigninSuccessRedirectsStaffToHome() {
 		$this->input->postData = ['signin' => '1', 'username' => 'staff1', 'password' => 'secret'];
 		$this->validation->runResult = TRUE;
-		$this->db->rows = [['username' => 'staff1', 'password' => 'secret', 'role' => 'staff']];
+		$this->db->rows = [
+			['username' => 'staff1', 'password' => password_hash('secret', PASSWORD_DEFAULT), 'role' => 'staff', 'email' => 'staff1@example.com'],
+		];
 
 		$this->controller->signin();
 
 		$this->assertSame('home', redirect_target());
+		$this->assertSame('staff1@example.com', $this->session->userdata('email'));
 	}
 
 	public function testSigninUnknownUserShowsError() {

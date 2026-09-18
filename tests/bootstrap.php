@@ -145,7 +145,9 @@ class FakeLoader {
 	public function view($view, $data = NULL, $return = FALSE) {
 		$this->viewCalls[] = ['view' => $view, 'data' => $data];
 		if ($return) {
-			return '';
+			// Real CI loader returns the rendered buffer when asked; hand
+			// back a non-empty stub so deliver_email() builds a body.
+			return '<p>rendered ' . $view . '</p>';
 		}
 		return NULL;
 	}
@@ -279,6 +281,7 @@ function form_error($field = '', $prefix = '', $suffix = '') {
 // Load test support fakes
 // ---------------------------------------------------------------------------
 require_once __DIR__ . '/support/FakeDb.php';
+require_once __DIR__ . '/support/FakeEmail.php';
 
 // ---------------------------------------------------------------------------
 // Load the application classes under test

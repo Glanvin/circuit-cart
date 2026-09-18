@@ -3,48 +3,84 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class EmailController extends CI_Controller {
 
+	public function index()
+	{
+		$data = [
+			'subject'  => 'Welcome to Circuit Cart',
+			'greeting' => 'Dear User,',
+			'message'  => 'Welcome to Circuit Cart',
+		];
 
-    public function index()
-    {
-        $data = [
-            'subject' => 'Welcome to Circuit Cart',
-            'openning_message' => "Dear User,",
-            'main_message' => "We Hope you enjoy our site.",
-        ];
+		$this->load->view('emails/welcome_email', $data);
+	}
 
-        $this->load->view('emails/welcome_email', $data);
-    }
+	public function sendWelcome()
+	{
+		$data = [
+			'subject'  => 'Welcome to Circuit Cart',
+			'greeting' => "Dear {$this->session->userdata('username')},",
+			'message'  => 'Welcome to Circuit Cart',
+		];
 
-    public function send() 
-    {
-        // $last = $this->session->userdata('last_mail_ts');
-        // if ($last !== NULL && (time() - $last) < 60) {
-        //     echo "Please wait before sending again (Gmail rate-limit guard).";
-        //     return;
-        // }
-        // $this->session->set_userdata('last_mail_ts', time());
+		if ($this->_deliver('emails/welcome_email', $data, $data['subject'])) {
+			$this->toastify->success('Welcome email sent.');
+			redirect('home', 'refresh');
+		}
 
-        $data = [
-            'subject' => 'Welcome to Circuit Cart',
-            'openning_message' => "Dear {$this->session->userdata('username')},",
-            'main_message' => "We Hope you enjoy our site.",
-        ];
+		echo "SMTP Error Details:<br>";
+		echo $this->email->print_debugger();
+	}
 
-        $message = $this->load->view('emails/welcome_email.php', $data, true);
+	public function sendOTP()
+	{
+		$otpData = [
+			'subject'  => 'Verify Your Email - Circuit Cart',
+			'greeting' => "Dear {$this->session->userdata('username')},",
+			'message'  => "We're thrilled to have you as part of the Circuit Cart community. To finish securing your account, please verify your email address using the code we sent you.",
+		];
 
-        $this->email->from('2092437@g.cu.edu.ph', 'Circuit Cart');
-        $this->email->to('');
+		if ($this->_deliver('emails/opt_email', $otpData, $otpData['subject'])) {
+			$this->toastify->success('A verification code has been sent to your email.');
+		} else {
+			$this->toastify->error('Unable to send the verification code. Please try again.');
+		}
 
-        $this->email->subject($data['subject']);
+		$this->_showVerifyPage();
+	}
 
-        $this->email->message($message);
+	private function _deliver(string $view, array $data, string $subject): bool
+	{
+		$this->ensureEmailInSession();
 
-        if($this->email->send()) {
-            echo "Email Sent!";
-        }else {
-            echo "SMTP Error Details:<br>";
-            echo $this->email->print_debugger();
-        }
+		return deliver_email($view, $data, (string) $this->session->userdata('email'), $subject);
+	}
 
-    }
+	private function ensureEmailInSession(): void
+	{
+		if (!empty($this->session->userdata('email'))) {
+			return;
+		}
+
+		$username = $this->session->userdata('username');
+		if (empty($username)) {
+			return;
+		}
+
+		$user = $this->UserModel->findUserByUsername($username);
+
+		if (!empty($user['email'])) {
+			$this->session->set_userdata('email', $user['email']);
+		}
+	}
+
+	private function _showVerifyPage(array $data = []): void
+	{
+		$data = array_merge([
+			'title'         => 'Verify Email',
+			'enable_footer' => FALSE,
+		], $data);
+
+		$this->load->view('templates/header', $data);
+		$this->load->view('auth/verify_email', $data);
+	}
 }

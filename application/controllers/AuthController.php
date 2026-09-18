@@ -15,7 +15,7 @@ class AuthController extends CI_Controller {
 
     public function signout()
     {
-        $this->session->unset_userdata(array('username', 'role'));
+        $this->session->unset_userdata(array('username', 'role', 'email'));
         $this->toastify->success('You have been signed out.');
         redirect('auth/signin');
     }
@@ -45,6 +45,7 @@ class AuthController extends CI_Controller {
                         $this->toastify->success("Welcome back {$response['username']}");
                         $this->session->set_userdata('username', $response['username']);
                         $this->session->set_userdata('role', $response['role']);
+                        $this->session->set_userdata('email', $response['email']);
                         redirect($response['role'] === 'admin' ? 'employee/dashboard' : 'home');
                     }else {
                         $this->toastify->error("Invalid credentials passed");
@@ -90,6 +91,16 @@ class AuthController extends CI_Controller {
 
                     $response = $this->UserModel->registerUser($user);
                     if($response) {
+                        deliver_email(
+                            'emails/welcome_email',
+                            [
+                                'subject'  => 'Welcome to Circuit Cart',
+                                'greeting' => "Dear " . ucfirst((string) $this->input->post('firstname', TRUE)) . ",",
+                                'message'  => 'Welcome to Circuit Cart',
+                            ],
+                            (string) $this->input->post('email', TRUE),
+                            'Welcome to Circuit Cart'
+                        );
                         $this->toastify->success("Registration successul");
                         redirect('auth/signin');
                     }else {
