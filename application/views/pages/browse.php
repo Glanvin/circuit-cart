@@ -78,8 +78,8 @@
                                 </p>
                                 
                                 <div class="d-grid gap-2">
-                                    <a href="#" class="btn btn-primary btn-sm">Buy Now</a>
-                                    <a href="#" class="btn btn-outline-secondary btn-sm">Add to Cart</a>
+                                    <a href="<?= site_url('cart/buy/' . $part['part_id']) ?>" class="btn btn-primary btn-sm">Buy Now</a>
+                                    <a href="<?= site_url('cart/add/' . $part['part_id']) ?>" class="btn btn-outline-secondary btn-sm">Add to Cart</a>
                                 </div>
                             </div>
                         </div>

@@ -147,3 +147,43 @@ function verify_otp(string $code): bool
 
     return $valid;
 }
+
+//Returns the current cart lines held in the session. Seeds the cart from the
+//first two active DB parts the first time it is requested so the navbar badge
+//and cart page can share one source. Returns an empty array when the cart has
+//been emptied (line items were removed) or the database is unavailable.
+//Each line: part_id, name, category, price, quantity.
+function cart_items(): array
+{
+    $CI =& get_instance();
+
+    $cart = $CI->session->userdata('cart_items');
+
+    if ($cart !== NULL) {
+        return is_array($cart) ? $cart : [];
+    }
+
+    $cart = [];
+
+    try {
+        $CI->load->model('PartsModel');
+
+        $parts = array_slice($CI->PartsModel->getAllParts(), 0, 2);
+
+        foreach ($parts as $i => $part) {
+            $cart[] = [
+                'part_id' => $part['part_id'],
+                'name' => $part['part_name'],
+                'category' => $part['category'],
+                'price' => $part['selling_price'],
+                'quantity' => $i === 0 ? 1 : 2,
+            ];
+        }
+    } catch (Exception $e) {
+        $cart = [];
+    }
+
+    $CI->session->set_userdata('cart_items', $cart);
+
+    return $cart;
+}

@@ -1,27 +1,67 @@
 <?php if (!empty($enable_footer)):?>
-<div class="container-fluid mt-auto">
-    <footer class="d-flex flex-wrap justify-content-between align-items-center py-3 my-4 border-top">
-        <div class="col-md-4 d-flex align-items-center px-3">
-            <a aria-label="Bootstrap" class="mb-3 me-2 mb-md-0 text-body-secondary text-decoration-none lh-1" href="#">
-                <i aria-hidden="true" class="bi bi-tools" height="24" width="30">
-                </i>
+<div class="container mt-auto">
+    <footer class="row row-cols-1 row-cols-sm-2 row-cols-md-5 py-5 my-5 border-top">
+        <div class="col mb-3">
+            <a href="<?= site_url('') ?>" class="d-flex align-items-center mb-3 text-body-secondary text-decoration-none lh-1" aria-label="<?= SITE_NAME ?>">
+                <i class="bi bi-tools me-2" aria-hidden="true" style="font-size: 1.5rem;"></i>
+                <span class="h5 mb-0"><?= SITE_NAME ?></span>
             </a>
-            <span class="mb-3 mb-md-0 text-body-secondary">
-                <?= SITE_NAME ?> - Copyright 2026
-            </span>
+            <p class="text-body-secondary mb-1">&copy; 2026</p>
+            <span class="badge text-body-secondary border">v<?= APP_VERSION ?></span>
         </div>
-        <ul class="nav col-md-4 justify-content-end list-unstyled d-flex px-3">
-            <li class="ms-3">
-                <a aria-label="Github" class="text-body-secondary" href="https://github.com/Glanvin">
-                    <i class="bi bi-github"></i>
-                </a>
-            </li>
-            <li class="ms-3">
-                <a aria-label="Discord" class="text-body-secondary" href="#">
-                    <i class="bi bi-discord"></i>
-                </a>
-            </li>
-        </ul>
+
+        <div class="col mb-3">
+            <h5>Support</h5>
+            <ul class="nav flex-column">
+                <li class="nav-item mb-2 text-body-secondary">
+                    <i class="bi bi-headset me-1"></i>
+                    Support
+                </li>
+                <li class="nav-item mb-2 text-body-secondary">
+                    <i class="bi bi-geo-alt me-1"></i>
+                    <span>019 Corrales Ext, Cagayan de Oro City, Philippines</span>
+                </li>
+                <li class="nav-item mb-2">
+                    <a href="mailto:support@circuit-cart.dev" class="nav-link p-0 text-body-secondary">
+                        <i class="bi bi-envelope me-1"></i>support@circuit-cart.dev
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="col mb-3">
+            <h5>Shop</h5>
+            <ul class="nav flex-column">
+                <li class="nav-item mb-2"><a href="<?= site_url('home') ?>" class="nav-link p-0 text-body-secondary">Home</a></li>
+                <li class="nav-item mb-2"><a href="<?= site_url('browse') ?>" class="nav-link p-0 text-body-secondary">Browse</a></li>
+                <li class="nav-item mb-2"><a href="<?= site_url('cart') ?>" class="nav-link p-0 text-body-secondary">Cart</a></li>
+            </ul>
+        </div>
+
+        <div class="col mb-3">
+            <h5>Company</h5>
+            <ul class="nav flex-column">
+                <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-body-secondary">About Us</a></li>
+                <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-body-secondary">FAQs</a></li>
+                <li class="nav-item mb-2"><a href="#" class="nav-link p-0 text-body-secondary">Terms</a></li>
+            </ul>
+        </div>
+
+        <div class="col mb-3">
+            <h5>Connect</h5>
+            <ul class="nav flex-column">
+                <li class="nav-item mb-2">
+                    <a href="https://github.com/Glanvin" class="nav-link p-0 text-body-secondary">
+                        <i class="bi bi-github me-1"></i>Github
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a href="#" class="nav-link p-0 text-body-secondary">
+                        <i class="bi bi-discord me-1"></i>Discord
+                    </a>
+                </li>
+            </ul>
+        </div>
     </footer>
 </div>
 <?php endif;?>

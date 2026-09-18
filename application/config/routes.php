@@ -52,6 +52,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $route['default_controller'] = 'AuthController';
 $route['home'] = 'HomeController';
 $route['browse'] = 'BrowseController';
+$route['cart'] = 'CartController';
+$route['cart/add/(:num)'] = 'CartController/add/$1';
+$route['cart/buy/(:num)'] = 'CartController/buyNow/$1';
+$route['cart/update/(:num)'] = 'CartController/update/$1';
+$route['cart/remove/(:num)'] = 'CartController/remove/$1';
+$route['checkout'] = 'CheckoutController';
 
 $route['employee/dashboard'] = 'DashboardController';
 $route['employee/manage/users'] = 'ManagementController';

@@ -13,5 +13,5 @@ $initialTheme = $themePreference === 'system' ? 'light' : $themePreference;
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 	<link rel="stylesheet" type="text/css" href="<?= base_url('assets/css/style.css')?>">
 </head>
-<body>
+<body data-base-url="<?= base_url() ?>">
 <?= $this->toastify->render(); ?>
