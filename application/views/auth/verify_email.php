@@ -15,7 +15,7 @@
         <input type="text" class="form-control text-center fs-4 otp-input" inputmode="numeric" maxlength="1" required />
       </div>
 
-      <button type="button" id="verify-btn" class="btn btn-primary w-100">Verify OTP</button>
+      <button type="button" id="verify-btn" class="btn btn-primary w-100" data-action="<?= site_url('auth/verify') ?>">Verify OTP</button>
     </div>
 
     <p class="small text-body-secondary mb-0">Didn't get the code? <a href="<?= site_url('auth/verify') ?>">Resend it</a></p>

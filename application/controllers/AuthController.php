@@ -23,7 +23,7 @@ class AuthController extends CI_Controller {
     public function signin()
     {
         $data = [
-            'title'         => 'Sign In',
+            'title' => 'Sign In',
             'enable_footer' => false,
         ];
 
@@ -127,5 +127,53 @@ class AuthController extends CI_Controller {
 
         $this->load->view('templates/header', $data);
         $this->load->view('auth/sign_up', $data);
+    }
+
+    public function verify()
+    {
+        $data = [
+            'title'         => 'Verify Email',
+            'enable_footer' => FALSE,
+        ];
+
+        if ($this->input->post('otp')) {
+            if (verify_otp((string) $this->input->post('otp', TRUE))) {
+                $user = $this->UserModel->findUserByUsername($this->session->userdata('username'));
+                $this->UserModel->updateUser($user['id'], ['verified_email' => 1]);
+
+                $this->toastify->success('Your email has been verified.');
+                redirect('settings', 'refresh');
+            }
+
+            $this->toastify->error('Invalid or expired verification code. Please try again.');
+        } else {
+            $this->ensureEmailInSession();
+
+            $email = (string) $this->session->userdata('email');
+            if ($email === '' || !store_otp($email)) {
+                $this->toastify->error('Unable to send the verification code. Please try again.');
+            }
+        }
+
+        $this->load->view('templates/header', $data);
+        $this->load->view('auth/verify_email', $data);
+    }
+
+    private function ensureEmailInSession(): void
+    {
+        if (!empty($this->session->userdata('email'))) {
+            return;
+        }
+
+        $username = $this->session->userdata('username');
+        if (empty($username)) {
+            return;
+        }
+
+        $user = $this->UserModel->findUserByUsername($username);
+
+        if (!empty($user['email'])) {
+            $this->session->set_userdata('email', $user['email']);
+        }
     }
 }

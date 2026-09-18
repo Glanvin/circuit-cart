@@ -65,10 +65,12 @@ $route['auth'] = 'AuthController';
 $route['auth/signin'] = 'AuthController/signin';
 $route['auth/signup'] = 'AuthController/signup';
 $route['auth/signout'] = 'AuthController/signout';
-$route['auth/verify'] = 'EmailController/sendOTP';
+$route['auth/verify'] = 'AuthController/verify';
 
-$route['settings/theme'] = 'SettingsController/theme';
 $route['settings'] = 'SettingsController';
+$route['settings/theme'] = 'SettingsController/theme';
+$route['settings/updateProfile'] = 'SettingsController/updateProfile';
+$route['settings/updatePassword'] = 'SettingsController/updatePassword';
 
 $route['404_override'] = 'ErrorController';
 $route['translate_uri_dashes'] = FALSE;

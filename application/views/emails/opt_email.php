@@ -37,15 +37,6 @@
                                 <p style="margin:0 0 12px; color:#6b7280; font-size:14px;">Your verification code is:</p>
                                 <p style="display:inline-block; margin:0; padding:14px 32px; background-color:#e3e8ef; border-radius:8px; color:#1a1f36; font-size:26px; font-weight:700; letter-spacing:8px;"><?php echo $otp_code; ?></p>
                             <?php endif; ?>
-
-                            <!-- Button -->
-                            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:12px auto 0;">
-                                <tr>
-                                    <td style="background-color:#0dcaf0; border-radius:8px;">
-                                        <a href="<?php echo site_url('auth/verify'); ?>" target="_blank" style="display:inline-block; padding:14px 36px; color:#ffffff; text-decoration:none; font-weight:600; font-size:15px; border-radius:8px;">Continue to Circuit Cart</a>
-                                    </td>
-                                </tr>
-                            </table>
                         </td>
                     </tr>
 
@@ -63,8 +54,8 @@
                                 Circuit Cart &middot; 019 Corrales Ext, Cagayan de Oro City, Philippines<br>
                                 <a href="mailto:support@circuitcart.com" style="color:#4e7cff; text-decoration:none;">support@circuitcart.com</a> &middot; +63 900 321 3266
                             </p>
-                            <p style="margin:0; color:#b8bfcc; font-size:11px;">You received this email because you signed up for Circuit Cart.<br>
-                            <a href="#" style="color:#b8bfcc; text-decoration:underline;">Unsubscribe</a></p>
+<!--                             <p style="margin:0; color:#b8bfcc; font-size:11px;">You received this email because you signed up for Circuit Cart.<br>
+                            <a href="#" style="color:#b8bfcc; text-decoration:underline;">Unsubscribe</a></p> -->
                         </td>
                     </tr>
 

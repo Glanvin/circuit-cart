@@ -26,7 +26,7 @@
                     <i class="bi bi-person-lines-fill me-1"></i>Personal Information
                 </div>
                 <div class="card-body">
-                    <form>
+                    <?= form_open('settings/updateProfile'); ?>
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <label for="username" class="form-label">Username</label>
@@ -34,20 +34,23 @@
                             </div>
                             <div class="col-md-6">
                                 <label for="firstname" class="form-label">First Name</label>
-                                <input type="text" class="form-control" id="firstname" value="<?= html_escape($user['firstname'] ?? '') ?>">
+                                <input type="text" class="form-control <?= is_invalid('firstname') ?>" id="firstname" name="firstname" value="<?= html_escape($user['firstname'] ?? '') ?>">
+                                <?= form_error('firstname', '<div class="invalid-feedback">', '</div>') ?>
                             </div>
                             <div class="col-md-6">
                                 <label for="middlename" class="form-label">Middle Name</label>
-                                <input type="text" class="form-control" id="middlename" value="<?= html_escape($user['middlename'] ?? '') ?>">
+                                <input type="text" class="form-control <?= is_invalid('middlename') ?>" id="middlename" name="middlename" value="<?= html_escape($user['middlename'] ?? '') ?>">
+                                <?= form_error('middlename', '<div class="invalid-feedback">', '</div>') ?>
                             </div>
                             <div class="col-md-6">
                                 <label for="lastname" class="form-label">Last Name</label>
-                                <input type="text" class="form-control" id="lastname" value="<?= html_escape($user['lastname'] ?? '') ?>">
+                                <input type="text" class="form-control <?= is_invalid('lastname') ?>" id="lastname" name="lastname" value="<?= html_escape($user['lastname'] ?? '') ?>">
+                                <?= form_error('lastname', '<div class="invalid-feedback">', '</div>') ?>
                             </div>
                             <div class="col-md-6">
                                 <label for="email" class="form-label">Email</label>
                                 <div class="input-group">
-                                    <input type="email" class="form-control" id="email" value="<?= html_escape($user['email'] ?? '') ?>">
+                                    <input type="email" class="form-control <?= is_invalid('email') ?>" id="email" name="email" value="<?= html_escape($user['email'] ?? '') ?>">
                                     <?php if (!empty($user['verified_email'])): ?>
                                         <button type="button" class="btn btn-outline-success" disabled>
                                             <i class="bi bi-check-lg me-1"></i>Verified
@@ -58,14 +61,16 @@
                                         </a>
                                     <?php endif; ?>
                                 </div>
+                                <?= form_error('email', '<div class="invalid-feedback">', '</div>') ?>
                             </div>
                             <div class="col-md-6">
                                 <label for="contactnumber" class="form-label">Phone Number</label>
-                                <input type="tel" class="form-control" id="contactnumber" value="<?= html_escape($user['contactnumber'] ?? '') ?>">
+                                <input type="tel" class="form-control <?= is_invalid('contactnumber') ?>" id="contactnumber" name="contactnumber" value="<?= html_escape($user['contactnumber'] ?? '') ?>">
+                                <?= form_error('contactnumber', '<div class="invalid-feedback">', '</div>') ?>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-primary mt-3">Save Changes</button>
-                    </form>
+                        <button type="submit" class="btn btn-primary mt-3" name="save_profile" value="save_profile">Save Changes</button>
+                    <?= form_close(); ?>
                 </div>
             </div>
 
@@ -74,38 +79,42 @@
                     <i class="bi bi-shield-lock me-1"></i>Change Password
                 </div>
                 <div class="card-body">
-                    <form>
+                    <?= form_open('settings/updatePassword'); ?>
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <label for="current-password" class="form-label">Current Password</label>
-                                <input type="password" class="form-control" id="current-password">
+                                <input type="password" class="form-control <?= is_invalid('current_password') ?>" id="current-password" name="current_password">
+                                <?= form_error('current_password', '<div class="invalid-feedback">', '</div>') ?>
                             </div>
                             <div class="col-md-4">
                                 <label for="new-password" class="form-label">New Password</label>
-                                <input type="password" class="form-control" id="new-password">
+                                <input type="password" class="form-control <?= is_invalid('new_password') ?>" id="new-password" name="new_password">
+                                <?= form_error('new_password', '<div class="invalid-feedback">', '</div>') ?>
                             </div>
                             <div class="col-md-4">
                                 <label for="confirm-password" class="form-label">Confirm New Password</label>
-                                <input type="password" class="form-control" id="confirm-password">
+                                <input type="password" class="form-control <?= is_invalid('confirm_password') ?>" id="confirm-password" name="confirm_password">
+                                <?= form_error('confirm_password', '<div class="invalid-feedback">', '</div>') ?>
                             </div>
                         </div>
-                        <button type="button" class="btn btn-primary mt-3">Update Password</button>
-                    </form>
+                        <button type="submit" class="btn btn-primary mt-3" name="update_password" value="update_password">Update Password</button>
+                    <?= form_close(); ?>
                 </div>
             </div>
 
             <div class="card mb-4">
-                <div class="card-header d-flex align-items-center justify-content-between">
-                    <span><i class="bi bi-geo-alt me-1"></i>Addresses</span>
-                    <button type="button" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-plus-lg me-1"></i>Add Address
-                    </button>
+                <div class="card-header">
+                    <i class="bi bi-geo-alt me-1"></i>Address
                 </div>
                 <div class="card-body">
-                    <div class="border rounded p-3 text-center text-body-secondary">
-                        <i class="bi bi-house-door fs-3 d-block mb-2"></i>
-                        No addresses saved yet.
-                    </div>
+                    <?= form_open('settings/updateProfile'); ?>
+                        <div class="mb-3">
+                            <label for="address" class="form-label">Address</label>
+                            <input type="text" class="form-control <?= is_invalid('address') ?>" id="address" name="address" value="<?= html_escape($user['address'] ?? '') ?>">
+                            <?= form_error('address', '<div class="invalid-feedback">', '</div>') ?>
+                        </div>
+                        <button type="submit" class="btn btn-primary" name="save_address" value="save_address">Save Address</button>
+                    <?= form_close(); ?>
                 </div>
             </div>
 

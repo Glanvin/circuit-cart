@@ -8,7 +8,7 @@ class ErrorController extends CI_Controller {
         $this->output->set_status_header(404);
 
         $data = [
-            'title'         => 'Not Found 404',
+            'title' => 'Not Found 404',
             'enable_footer' => true,
         ];
 
