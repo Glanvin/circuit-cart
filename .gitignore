@@ -31,5 +31,13 @@ user_guide_src/cilexer/pycilexer.egg-info/*
 /tests/tests/
 /tests/results/
 
+## Environment files (never commit secrets)
+#-------------------------------
 .env
+.env.local
+.env.*.local
+.env.production
+.env.backup
+*.env.bak
+
 .phpunit.result.cache

@@ -52,6 +52,12 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $route['default_controller'] = 'AuthController';
 $route['home'] = 'HomeController';
 $route['browse'] = 'BrowseController';
+$route['cart'] = 'CartController';
+$route['cart/add/(:num)'] = 'CartController/add/$1';
+$route['cart/buy/(:num)'] = 'CartController/buyNow/$1';
+$route['cart/update/(:num)'] = 'CartController/update/$1';
+$route['cart/remove/(:num)'] = 'CartController/remove/$1';
+$route['checkout'] = 'CheckoutController';
 
 $route['employee/dashboard'] = 'DashboardController';
 $route['employee/manage/users'] = 'ManagementController';
@@ -65,6 +71,12 @@ $route['auth'] = 'AuthController';
 $route['auth/signin'] = 'AuthController/signin';
 $route['auth/signup'] = 'AuthController/signup';
 $route['auth/signout'] = 'AuthController/signout';
+$route['auth/verify'] = 'AuthController/verify';
 
-$route['404_override'] = '';
+$route['settings'] = 'SettingsController';
+$route['settings/theme'] = 'SettingsController/theme';
+$route['settings/updateProfile'] = 'SettingsController/updateProfile';
+$route['settings/updatePassword'] = 'SettingsController/updatePassword';
+
+$route['404_override'] = 'ErrorController';
 $route['translate_uri_dashes'] = FALSE;

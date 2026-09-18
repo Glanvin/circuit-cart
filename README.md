@@ -40,7 +40,11 @@ Built on **CodeIgniter 3** with **Bootstrap 5**, **MySQL**, and a custom **Toast
        is_active      TINYINT(1) NOT NULL DEFAULT 1
    );
    ```
-4. Point your browser at `http://localhost/ci3/`.
+4. Add the email-verification flag to the `tbl_users` table:
+   ```sql
+   ALTER TABLE tbl_users ADD COLUMN verified_email TINYINT(1) NOT NULL DEFAULT 0 AFTER email;
+   ```
+5. Point your browser at `http://localhost/ci3/`.
 
 > The DB config uses XAMPP defaults (`root`, empty password). Do not ship that to production.
 

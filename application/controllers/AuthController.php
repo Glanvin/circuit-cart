@@ -6,18 +6,16 @@ class AuthController extends CI_Controller {
     //Entry point for authentication.
     public function index()
     {
-        try {
-            check_session();
+        if ($this->session->userdata('username')) {
             redirect($this->session->userdata('role') === 'admin' ? 'employee/dashboard' : 'home');
-        } catch (AppException $e) {
-            $this->toastify->error($e->toToast());
-            $this->signin();
         }
+
+        $this->signin();
     }
 
     public function signout()
     {
-        $this->session->unset_userdata(array('username', 'role'));
+        $this->session->unset_userdata(array('username', 'role', 'email'));
         $this->toastify->success('You have been signed out.');
         redirect('auth/signin');
     }
@@ -25,7 +23,7 @@ class AuthController extends CI_Controller {
     public function signin()
     {
         $data = [
-            'title'         => 'Sign In',
+            'title' => 'Sign In',
             'enable_footer' => false,
         ];
 
@@ -43,10 +41,11 @@ class AuthController extends CI_Controller {
 
                     if(!$response) {
                         $this->toastify->error("User does not exist");
-                    }elseif($response['password'] === $password) {
+                    }elseif(password_verify($password, $response['password'])) {
                         $this->toastify->success("Welcome back {$response['username']}");
                         $this->session->set_userdata('username', $response['username']);
                         $this->session->set_userdata('role', $response['role']);
+                        $this->session->set_userdata('email', $response['email']);
                         redirect($response['role'] === 'admin' ? 'employee/dashboard' : 'home');
                     }else {
                         $this->toastify->error("Invalid credentials passed");
@@ -67,7 +66,7 @@ class AuthController extends CI_Controller {
     public function signup()
     {
         $data = [
-            'title'         => 'Sign Up',
+            'title' => 'Sign Up',
             'enable_footer' => false,
         ];
         if($this->input->post('register')) {
@@ -77,18 +76,31 @@ class AuthController extends CI_Controller {
 
             if($this->form_validation->run() === true) {
                 try {
+
+                    $hashed_password = password_hash($this->input->post('password', true), PASSWORD_DEFAULT);
+
                     $user = [
                         'username' => strtolower($this->input->post('username', true)),
                         'firstname' => ucfirst($this->input->post('firstname', true)),
                         'middlename' => ucfirst($this->input->post('middlename', true)),
                         'lastname' => ucfirst($this->input->post('lastname', true)),
                         'contactnumber' => $this->input->post('contactnumber', true),
-                        'password' => $this->input->post('password', true),
+                        'password' => $hashed_password,
                         'email' => strtolower($this->input->post('email', true))
                     ];
 
                     $response = $this->UserModel->registerUser($user);
                     if($response) {
+                        deliver_email(
+                            'emails/welcome_email',
+                            [
+                                'subject'  => 'Welcome to Circuit Cart',
+                                'greeting' => "Dear " . ucfirst((string) $this->input->post('firstname', TRUE)) . ",",
+                                'message'  => 'Welcome to Circuit Cart',
+                            ],
+                            (string) $this->input->post('email', TRUE),
+                            'Welcome to Circuit Cart'
+                        );
                         $this->toastify->success("Registration successul");
                         redirect('auth/signin');
                     }else {
@@ -115,5 +127,53 @@ class AuthController extends CI_Controller {
 
         $this->load->view('templates/header', $data);
         $this->load->view('auth/sign_up', $data);
+    }
+
+    public function verify()
+    {
+        $data = [
+            'title'         => 'Verify Email',
+            'enable_footer' => FALSE,
+        ];
+
+        if ($this->input->post('otp')) {
+            if (verify_otp((string) $this->input->post('otp', TRUE))) {
+                $user = $this->UserModel->findUserByUsername($this->session->userdata('username'));
+                $this->UserModel->updateUser($user['id'], ['verified_email' => 1]);
+
+                $this->toastify->success('Your email has been verified.');
+                redirect('settings', 'refresh');
+            }
+
+            $this->toastify->error('Invalid or expired verification code. Please try again.');
+        } else {
+            $this->ensureEmailInSession();
+
+            $email = (string) $this->session->userdata('email');
+            if ($email === '' || !store_otp($email)) {
+                $this->toastify->error('Unable to send the verification code. Please try again.');
+            }
+        }
+
+        $this->load->view('templates/header', $data);
+        $this->load->view('auth/verify_email', $data);
+    }
+
+    private function ensureEmailInSession(): void
+    {
+        if (!empty($this->session->userdata('email'))) {
+            return;
+        }
+
+        $username = $this->session->userdata('username');
+        if (empty($username)) {
+            return;
+        }
+
+        $user = $this->UserModel->findUserByUsername($username);
+
+        if (!empty($user['email'])) {
+            $this->session->set_userdata('email', $user['email']);
+        }
     }
 }

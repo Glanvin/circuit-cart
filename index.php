@@ -57,13 +57,17 @@
 
 	Dotenv\Dotenv::createImmutable(__DIR__)->safeLoad();
 
-	define('ENVIRONMENT', isset($_SERVER['CI_ENV']) ? $_SERVER['CI_ENV'] : (getenv('CI_ENV') ?: 'development'));
+	require_once __DIR__.'/application/helpers/env_helper.php';
 
-	define('SITE_NAME', getenv('SITE_NAME') ?: 'Circuit Cart');
-	define('DATABASE_NAME', getenv('DATABASE_NAME'));
-	define('DATABASE_HOSTNAME', getenv('DATABASE_HOSTNAME') ?: 'localhost');
-	define('DATABASE_USERNAME', getenv('DATABASE_USERNAME'));
-	define('DATABASE_PASSWORD', getenv('DATABASE_PASSWORD'));
+	define('ENVIRONMENT', app_env('CI_ENV', 'development') ?: 'development');
+
+	define('SITE_NAME', app_env('SITE_NAME', 'Circuit Cart'));
+	define('APP_VERSION', app_env('APP_VERSION', '0.0.1'));
+	define('DATABASE_NAME', app_env('DATABASE_NAME'));
+	define('DATABASE_HOSTNAME', app_env('DATABASE_HOSTNAME', 'localhost'));
+	define('DATABASE_PORT', app_env('DATABASE_PORT', '3306'));
+	define('DATABASE_USERNAME', app_env('DATABASE_USERNAME'));
+	define('DATABASE_PASSWORD', app_env('DATABASE_PASSWORD'));
 
 /*
  *---------------------------------------------------------------

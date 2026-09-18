@@ -76,6 +76,7 @@ $query_builder = TRUE;
 $db['default'] = array(
 	'dsn'	=> '',
 	'hostname' => DATABASE_HOSTNAME,
+	'port' => DATABASE_PORT,
 	'username' => DATABASE_USERNAME,
 	'password' => DATABASE_PASSWORD,
 	'database' => DATABASE_NAME,
@@ -88,9 +89,9 @@ $db['default'] = array(
 	'char_set' => 'utf8',
 	'dbcollat' => 'utf8_general_ci',
 	'swap_pre' => '',
-	'encrypt' => [
+	'encrypt' => in_array(DATABASE_HOSTNAME, array('localhost', '127.0.0.1')) ? array() : array(
 		'ssl_verify' => FALSE,
-	],
+	),
 	'compress' => FALSE,
 	'stricton' => NULL,
 	'failover' => array(),

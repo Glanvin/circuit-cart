@@ -26,6 +26,7 @@ class AuthControllerTest extends TestCase {
 		$controller->form_validation = $this->validation = new FakeValidation();
 		$controller->db            = $this->db         = new FakeDb();
 		$controller->load          = $this->loader     = new FakeLoader();
+		$controller->email         = $this->email     = new FakeEmail();
 		$controller->UserModel     = new UserModel();
 
 		$this->config->items['user_signin'] = [
@@ -61,11 +62,11 @@ class AuthControllerTest extends TestCase {
 		$this->assertSame('home', redirect_target());
 	}
 
-	public function testIndexWithoutValidSessionShowsErrorAndSigninView() {
-		// No username in session -> check_session() throws -> toast + signin view.
+	public function testIndexWithoutValidSessionJustShowsSigninView() {
+		// No username in session -> signin view renders with no session error toast.
 		$this->controller->index();
 
-		$this->assertNotEmpty($this->session->flashdata('toast_error'));
+		$this->assertNull($this->session->flashdata('toast_error'));
 		$views = array_column($this->loader->viewCalls, 'view');
 		$this->assertContains('auth/sign_in', $views);
 	}
@@ -93,23 +94,29 @@ class AuthControllerTest extends TestCase {
 	public function testSigninSuccessRedirectsAdminToDashboard() {
 		$this->input->postData = ['signin' => '1', 'username' => 'admin1', 'password' => 'secret'];
 		$this->validation->runResult = TRUE;
-		$this->db->rows = [['username' => 'admin1', 'password' => 'secret', 'role' => 'admin']];
+		$this->db->rows = [
+			['username' => 'admin1', 'password' => password_hash('secret', PASSWORD_DEFAULT), 'role' => 'admin', 'email' => 'admin1@example.com'],
+		];
 
 		$this->controller->signin();
 
 		$this->assertSame('admin1', $this->session->userdata('username'));
 		$this->assertSame('admin', $this->session->userdata('role'));
+		$this->assertSame('admin1@example.com', $this->session->userdata('email'));
 		$this->assertSame('employee/dashboard', redirect_target());
 	}
 
 	public function testSigninSuccessRedirectsStaffToHome() {
 		$this->input->postData = ['signin' => '1', 'username' => 'staff1', 'password' => 'secret'];
 		$this->validation->runResult = TRUE;
-		$this->db->rows = [['username' => 'staff1', 'password' => 'secret', 'role' => 'staff']];
+		$this->db->rows = [
+			['username' => 'staff1', 'password' => password_hash('secret', PASSWORD_DEFAULT), 'role' => 'staff', 'email' => 'staff1@example.com'],
+		];
 
 		$this->controller->signin();
 
 		$this->assertSame('home', redirect_target());
+		$this->assertSame('staff1@example.com', $this->session->userdata('email'));
 	}
 
 	public function testSigninUnknownUserShowsError() {

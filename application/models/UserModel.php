@@ -51,4 +51,23 @@ class UserModel extends CI_Model {
 
         return $query->row_array();
     }
+
+    public function findUserByEmail($email) {
+        $this->db->where('email', $email);
+        $query = $this->db->get('tbl_users');
+        if(!$query) {
+            throw new AppException('Q03');
+        }
+
+        return $query->row_array();
+    }
+
+    public function updateUser($id, $data) {
+        if(empty($data)) {
+            throw new AppException('D01');
+        }
+
+        $this->db->where('id', $id);
+        return $this->db->update('tbl_users', $data);
+    }
 }

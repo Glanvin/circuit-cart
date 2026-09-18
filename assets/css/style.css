@@ -29,3 +29,27 @@
   }
 }
 
+.error-bg {
+    background-color: #f8f9fa;
+}
+
+/* Settings page: sticky side navigation */
+.settings-sidebar {
+  position: sticky;
+  top: 1rem;
+  align-self: start;
+}
+
+/* Navbar: roomier search bar and breathing room between the cart icon and
+   the user dropdown so the cart badge never overlaps the dropdown. */
+.navbar form[role="search"] {
+  min-width: 220px;
+}
+
+@media (min-width: 992px) {
+  .navbar form[role="search"].navbar-search {
+    flex-grow: 0;
+    min-width: 280px;
+  }
+}
+
