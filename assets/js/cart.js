@@ -75,7 +75,7 @@ function initCartSummary() {
     fetch(BASE_URL + 'cart/update/' + partId, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: 'action=' + (delta > 0 ? 'inc' : 'dec')
+      body: window.CSRF ? window.CSRF.appendTo('action=' + (delta > 0 ? 'inc' : 'dec')) : 'action=' + (delta > 0 ? 'inc' : 'dec')
     })
       .then(res => res.json())
       .then(data => {
@@ -120,7 +120,8 @@ function initCartSummary() {
 
       fetch(BASE_URL + 'cart/remove/' + row.dataset.partId, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: window.CSRF ? window.CSRF.appendTo('') : ''
       })
         .then(res => res.json())
         .then(data => {

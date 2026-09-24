@@ -3,6 +3,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class CheckoutController extends MY_Controller {
 
+	protected bool $requireLogin = FALSE;
+
+	//Renders the checkout with the buy-now line or session cart, whichever is active.
 	public function index()
 	{
 		//A Buy Now purchase is a standalone line, independent of the session cart.

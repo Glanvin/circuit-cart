@@ -13,6 +13,7 @@ class AuthController extends CI_Controller {
         $this->signin();
     }
 
+    //Signs the user out and clears the session.
     public function signout()
     {
         $this->session->unset_userdata(array('username', 'role', 'email'));
@@ -20,6 +21,10 @@ class AuthController extends CI_Controller {
         redirect('auth/signin');
     }
 
+    /*
+     * Shows the sign-in form and authenticates submitted credentials, routing
+     * admins to the employee dashboard and everyone else to the home page.
+     */
     public function signin()
     {
         $data = [
@@ -63,6 +68,10 @@ class AuthController extends CI_Controller {
         $this->load->view('auth/sign_in', $data);
     }
 
+    /*
+     * Shows the registration form and creates a new account, emailing a welcome
+     * message to the new user before redirecting to sign-in.
+     */
     public function signup()
     {
         $data = [
@@ -94,9 +103,9 @@ class AuthController extends CI_Controller {
                         deliver_email(
                             'emails/welcome_email',
                             [
-                                'subject'  => 'Welcome to Circuit Cart',
+                                'subject' => 'Welcome to Circuit Cart',
                                 'greeting' => "Dear " . ucfirst((string) $this->input->post('firstname', TRUE)) . ",",
-                                'message'  => 'Welcome to Circuit Cart',
+                                'message' => 'Welcome to Circuit Cart',
                             ],
                             (string) $this->input->post('email', TRUE),
                             'Welcome to Circuit Cart'
@@ -129,10 +138,14 @@ class AuthController extends CI_Controller {
         $this->load->view('auth/sign_up', $data);
     }
 
+    /*
+     * Sends a verification code to the session email and validates the submitted
+     * OTP, marking the account as verified before redirecting to settings.
+     */
     public function verify()
     {
         $data = [
-            'title'         => 'Verify Email',
+            'title' => 'Verify Email',
             'enable_footer' => FALSE,
         ];
 
@@ -159,6 +172,7 @@ class AuthController extends CI_Controller {
         $this->load->view('auth/verify_email', $data);
     }
 
+    //Ensures the current user's email is loaded into the session.
     private function ensureEmailInSession(): void
     {
         if (!empty($this->session->userdata('email'))) {

@@ -4,7 +4,7 @@
     <?php
     if (!empty($parts)) {
         $deviceTypes = [];
-        $categories  = [];
+        $categories = [];
 
         foreach ($parts as $part) {
             if (!empty($part['device_type'])) {
@@ -16,12 +16,12 @@
         }
 
         $deviceTypes = array_keys($deviceTypes);
-        $categories  = array_keys($categories);
+        $categories = array_keys($categories);
         sort($deviceTypes);
         sort($categories);
     } else {
         $deviceTypes = [];
-        $categories  = [];
+        $categories = [];
     }
     ?>
 

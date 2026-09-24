@@ -130,6 +130,45 @@ $config['user_profile'] = array(
 	),
 );
 
+$config['booking_form'] = array(
+	array(
+		'field' => 'device',
+		'label' => 'Device Name & Model',
+		'rules' => 'required|trim|max_length[128]',
+		'errors' => array(
+			'required' => '%s cannot be blank',
+			'max_length' => '%s is too long, maximum length is 128 characters',
+		)
+	),
+	array(
+		'field' => 'issue',
+		'label' => 'Issue Description',
+		'rules' => 'required|trim|min_length[10]',
+		'errors' => array(
+			'required' => '%s cannot be blank',
+			'min_length' => '%s must be at least 10 characters long',
+		)
+	),
+	array(
+		'field' => 'preferred_date',
+		'label' => 'Visit Date',
+		'rules' => 'required|regex_match[/^\d{4}-\d{2}-\d{2}$/]',
+		'errors' => array(
+			'required' => '%s cannot be blank',
+			'regex_match' => '%s must be in YYYY-MM-DD format',
+		)
+	),
+	array(
+		'field' => 'preferred_time',
+		'label' => 'Visit Time',
+		'rules' => 'required|regex_match[/^\d{2}:\d{2}$/]',
+		'errors' => array(
+			'required' => '%s cannot be blank',
+			'regex_match' => '%s must be in HH:MM format',
+		)
+	),
+);
+
 $config['user_address'] = array(
 	array(
 		'field' => 'address',
@@ -163,6 +202,36 @@ $config['user_password'] = array(
 		'errors' => array(
 			'required' => '%s cannot be blank',
 			'matches' => '%s does not match to New Password',
+		)
+	),
+);
+
+$config['bug_report'] = array(
+	array(
+		'field' => 'email',
+		'label' => 'Email',
+		'rules' => 'trim|valid_email|max_length[255]',
+		'errors' => array(
+			'valid_email' => '%s must be a valid email address',
+			'max_length' => '%s is too long, maximum length is 255 characters',
+		)
+	),
+	array(
+		'field' => 'title',
+		'label' => 'Title',
+		'rules' => 'required|trim|max_length[150]',
+		'errors' => array(
+			'required' => '%s cannot be blank',
+			'max_length' => '%s is too long, maximum length is 150 characters',
+		)
+	),
+	array(
+		'field' => 'description',
+		'label' => 'Description',
+		'rules' => 'required|trim|min_length[10]',
+		'errors' => array(
+			'required' => '%s cannot be blank',
+			'min_length' => '%s must be at least 10 characters long',
 		)
 	),
 );

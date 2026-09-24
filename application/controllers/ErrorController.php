@@ -3,6 +3,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class ErrorController extends CI_Controller {
 
+    //Renders the 404 error page for missing routes.
     public function index()
     {
         $this->output->set_status_header(404);

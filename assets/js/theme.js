@@ -36,7 +36,7 @@
         fetch(toggleUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: 'theme=' + encodeURIComponent(themePref)
+            body: window.CSRF ? window.CSRF.appendTo('theme=' + encodeURIComponent(themePref)) : 'theme=' + encodeURIComponent(themePref)
         });
     }
 

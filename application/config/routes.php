@@ -49,7 +49,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | Examples:	my-controller/index	-> my_controller/index
 |		my-controller/my-method	-> my_controller/my_method
 */
-$route['default_controller'] = 'AuthController';
+$route['default_controller'] = 'HomeController';
 $route['home'] = 'HomeController';
 $route['browse'] = 'BrowseController';
 $route['cart'] = 'CartController';
@@ -58,6 +58,20 @@ $route['cart/buy/(:num)'] = 'CartController/buyNow/$1';
 $route['cart/update/(:num)'] = 'CartController/update/$1';
 $route['cart/remove/(:num)'] = 'CartController/remove/$1';
 $route['checkout'] = 'CheckoutController';
+
+$route['booking'] = 'BookingController';
+$route['booking/appointments'] = 'BookingController/appointments';
+
+$route['bugs'] = 'BugController';
+
+$route['storage/booking'] = 'EmployeeBookingController';
+$route['storage/booking/approve/(:num)'] = 'EmployeeBookingController/approve/$1';
+$route['storage/booking/reschedule/(:num)'] = 'EmployeeBookingController/reschedule/$1';
+$route['storage/booking/decline/(:num)'] = 'EmployeeBookingController/decline/$1';
+$route['storage/booking/finish/(:num)'] = 'EmployeeBookingController/finish/$1';
+
+$route['storage/bugs'] = 'EmployeeBugController';
+$route['storage/bugs/status/(:num)/(:any)'] = 'EmployeeBugController/status/$1/$2';
 
 $route['employee/dashboard'] = 'DashboardController';
 $route['employee/manage/users'] = 'ManagementController';

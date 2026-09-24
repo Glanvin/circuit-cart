@@ -53,6 +53,14 @@
     hidden.value = code;
     form.appendChild(hidden);
 
+    if (window.CSRF && window.CSRF.name() && window.CSRF.token()) {
+      var csrfField = document.createElement('input');
+      csrfField.type = 'hidden';
+      csrfField.name = window.CSRF.name();
+      csrfField.value = window.CSRF.token();
+      form.appendChild(csrfField);
+    }
+
     document.body.appendChild(form);
     form.submit();
   }

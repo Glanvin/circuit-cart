@@ -30,6 +30,26 @@ function initFilters() {
         });
     });
 
+    // Preselect filters from the URL
+    const params = new URLSearchParams(window.location.search);
+    const paramGroups = { category: 'category', device: 'device-type' };
+
+    for (const [param, groupName] of Object.entries(paramGroups)) {
+        const value = (params.get(param) || '').toLowerCase();
+        if (!value) continue;
+
+        const group = document.querySelector('[data-filter-group="' + groupName + '"]');
+        if (!group) continue;
+
+        group.querySelectorAll('[data-filter]').forEach(btn => {
+            if (btn.dataset.filter === value) {
+                btn.click();
+            }
+        });
+    }
+
+    applyFilters();
+
     function applyFilters() {
         let visibleCount = 0;
 

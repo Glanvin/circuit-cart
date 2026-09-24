@@ -9,14 +9,32 @@ abstract class MY_Controller extends CI_Controller {
 	//Role required to access this controller, or NULL for any signed-in user.
 	protected ?string $requiredRole = NULL;
 
-	//Validates the user session on every request.
+	//Alternative to $requiredRole: any role in this list may access the page.
+	protected array $allowedRoles = [];
+
+	//Whether a valid session is required to access this controller. Public pages
+	//(browse, cart, checkout, home) set this to FALSE so guests can shop.
+	protected bool $requireLogin = TRUE;
+
+	/*
+	 * Validates the session and role requirements on every request, redirecting
+	 * to the appropriate page when access is denied.
+	 */
 	public function __construct()
 	{
 		parent::__construct();
 		try {
-			check_session();
+			if ($this->requireLogin) {
+				check_session();
+			}
 
-			if ($this->requiredRole && $this->session->userdata('role') !== $this->requiredRole) {
+			$role = $this->session->userdata('role');
+
+			if (!empty($this->allowedRoles)) {
+				if (!in_array($role, $this->allowedRoles, true)) {
+					throw new AppException('P03');
+				}
+			} elseif ($this->requiredRole && $role !== $this->requiredRole) {
 				throw new AppException('P03');
 			}
 		}catch(AppException $e) {

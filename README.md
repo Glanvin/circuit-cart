@@ -44,7 +44,50 @@ Built on **CodeIgniter 3** with **Bootstrap 5**, **MySQL**, and a custom **Toast
    ```sql
    ALTER TABLE tbl_users ADD COLUMN verified_email TINYINT(1) NOT NULL DEFAULT 0 AFTER email;
    ```
-5. Point your browser at `http://localhost/ci3/`.
+5. Create the repair-booking table:
+   ```sql
+   CREATE TABLE tbl_booking (
+       id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+       username        VARCHAR(20)   NOT NULL,
+       device          VARCHAR(128)  NOT NULL,
+       issue           TEXT          NOT NULL,
+       preferred_date  DATE          NOT NULL,
+       preferred_time  TIME          NOT NULL,
+       status          ENUM('pending','approved','rescheduled','declined','finished') NOT NULL DEFAULT 'pending',
+       images          JSON          NULL,
+       created_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP
+   );
+   ```
+   If the table was created before the `finished` status existed, migrate it with:
+    ```sql
+    ALTER TABLE tbl_booking
+        MODIFY COLUMN status ENUM('pending','approved','rescheduled','declined','finished') NOT NULL DEFAULT 'pending';
+    ```
+    If the table was created with the older `image1`/`image2`/`image3` columns, migrate it with:
+   ```sql
+   ALTER TABLE tbl_booking
+       ADD COLUMN images JSON NULL AFTER status,
+       DROP COLUMN image1,
+       DROP COLUMN image2,
+       DROP COLUMN image3;
+   ```
+6. Ensure `storage/booking/` exists and is writable (device photos are stored there, 5 MB max each). The folder is already git-ignored.
+7. Create the bug-report table:
+   ```sql
+   CREATE TABLE tbl_bug_reports (
+       id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+       username    VARCHAR(20)   NULL,
+       email       VARCHAR(255)  NULL,
+       title       VARCHAR(150)  NOT NULL,
+       description TEXT          NOT NULL,
+       images      JSON          NULL,
+       status      ENUM('new','in_progress','fixed') NOT NULL DEFAULT 'new',
+       created_at  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP
+   );
+   ```
+   `username`/`email` hold the submitter (guests fill in the email, signed-in users are recorded by username). No IP addresses are ever stored.
+8. Ensure `storage/bugs/` exists and is writable (bug-report screenshots are stored there, 3 MB max each, up to 3 per report, only for signed-in users). The folder is already git-ignored.
+9. Point your browser at `http://localhost/ci3/`.
 
 > The DB config uses XAMPP defaults (`root`, empty password). Do not ship that to production.
 
@@ -54,6 +97,15 @@ Built on **CodeIgniter 3** with **Bootstrap 5**, **MySQL**, and a custom **Toast
 | --- | --- |
 | `/` | `HomeController` |
 | `/browse` | `BrowseController` |
+| `/booking` | `BookingController` |
+| `/booking/appointments` | `BookingController::appointments()` |
+| `/bugs` | `BugController` |
+| `/storage/booking` | `EmployeeBookingController` |
+| `/storage/booking/approve/{id}` | `EmployeeBookingController::approve()` |
+| `/storage/booking/reschedule/{id}` | `EmployeeBookingController::reschedule()` |
+| `/storage/booking/decline/{id}` | `EmployeeBookingController::decline()` |
+| `/storage/bugs` | `EmployeeBugController` |
+| `/storage/bugs/status/{id}/{status}` | `EmployeeBugController::status()` |
 | `/employee/dashboard` | `DashboardController` |
 | `/employee/manage/users` | `ManagementController` |
 | `/inventory/stocks` | `StockController` |

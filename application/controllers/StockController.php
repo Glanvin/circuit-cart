@@ -7,6 +7,7 @@ class StockController extends MY_Controller {
 
 	protected ?string $requiredRole = 'admin';
 
+	//Renders the stock table for all active parts.
 	public function index()
 	{
 		try {
@@ -23,10 +24,12 @@ class StockController extends MY_Controller {
 		}
 	}
 
+	//Placeholder for adding stock.
 	public function addStock() {
 
 	}
 
+	//Placeholder for creating a new stock-keeping unit.
 	public function newSKU() {
 
 	}

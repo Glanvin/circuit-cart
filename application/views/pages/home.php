@@ -12,8 +12,12 @@
               Need a device fixed or replacing a component yourself? Book a professional repair for your iPhone, Android, laptop, Steam Deck, or Nintendo Switch, or shop our catalog for reliable parts, Windows licenses, and Microsoft Office setups.
             </p>
             <div class="d-grid gap-2 d-md-flex justify-md-start">
-              <a href="#book-repair" class="btn btn-info btn-lg px-4 me-md-2">Book a Repair</a>
-              <a href="<?= site_url('browse')?>" class="btn btn-outline-secondary btn-lg px-4">Buy Parts & Licenses</a>
+              <?php if ($this->session->userdata('username')): ?>
+              <a href="<?= site_url('booking') ?>" class="btn btn-info btn-lg px-4 me-md-2">Book a Repair</a>
+              <?php else: ?>
+              <button type="button" class="btn btn-info btn-lg px-4 me-md-2" data-bs-toggle="modal" data-bs-target="#bookRepairModal">Book a Repair</button>
+              <?php endif; ?>
+              <a href="<?= site_url('browse')?>" class="btn btn-outline-secondary btn-lg px-4">Buy Parts</a>
             </div>
         </div>
     </div>

@@ -6,6 +6,7 @@ class AppException extends Exception {
 	//Standardized error code the letter-prefixed identifier
 	protected string $errorCode;
 
+	//Builds the exception with the resolved message for the given code.
 	public function __construct(string $code, array $params = [], ?Throwable $previous = NULL)
 	{
 		$this->errorCode = $code;

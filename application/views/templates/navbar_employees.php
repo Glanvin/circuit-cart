@@ -31,6 +31,16 @@
                         </li>
                     </ul>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link <?php if(strtolower($title) == 'bookings') echo 'active';?>" href="<?= site_url('storage/booking')?>">
+                        Bookings
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?php if(strtolower($title) == 'bugs') echo 'active';?>" href="<?= site_url('storage/bugs')?>">
+                        Bug Reports
+                    </a>
+                </li>
                 <li class="nav-item dropdown">
                     <a aria-expanded="false" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" id="stock" role="button">
                         Stock Management

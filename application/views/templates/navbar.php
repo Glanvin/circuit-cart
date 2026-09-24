@@ -19,32 +19,16 @@
                         Browse
                     </a>
                 </li>
-                <li class="nav-item dropdown">
-                    <a aria-expanded="false" class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" id="categories" role="button">
-                        Categories
+                <li class="nav-item">
+                    <?php if ($this->session->userdata('username')): ?>
+                    <a class="nav-link <?php if (in_array(strtolower($title), ['book a repair', 'my appointments'])) echo 'active';?>" href="<?= site_url('booking')?>">
+                        Book
                     </a>
-                    <ul aria-labelledby="categories" class="dropdown-menu">
-                        <li>
-                            <a class="dropdown-item" href="#">
-                                Smartphones
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="#">
-                                Laptops
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="#">
-                                Tablets
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item" href="#">
-                                Licenses
-                            </a>
-                        </li>
-                    </ul>
+                    <?php else: ?>
+                    <a class="nav-link" href="#" data-bs-toggle="modal" data-bs-target="#bookRepairModal">
+                        Book
+                    </a>
+                    <?php endif; ?>
                 </li>
             </ul>
             <form class="d-flex flex-grow-1 flex-lg-grow-0 navbar-search me-lg-4" role="search">
@@ -65,13 +49,14 @@
                 <i class="bi bi-cart fs-5"></i>
                 <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger <?= $cartCount > 0 ? '' : 'd-none' ?>"><?= $cartCount ?></span>
             </a>
+                <?php if ($this->session->userdata('username')): ?>
                 <div class="dropdown">
                     <button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-person-circle fs-5 me-1"></i>
                         <?= html_escape($this->session->userdata('username')) ?>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                        <li><a class="dropdown-item" href="#">My Account</a></li>
+                        <li><a class="dropdown-item" href="<?= site_url('booking/appointments') ?>">My Appointments</a></li>
                         <li><a class="dropdown-item" href="<?= site_url('settings') ?>">Settings</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
@@ -79,6 +64,9 @@
                         </li>
                     </ul>
                 </div>
+                <?php else: ?>
+                <a href="<?= site_url('auth/signin') ?>" class="btn btn-primary">Sign In</a>
+                <?php endif; ?>
             </div>
         </div>
     </div>

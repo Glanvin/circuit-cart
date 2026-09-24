@@ -3,6 +3,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class CartController extends MY_Controller {
 
+	protected bool $requireLogin = FALSE;
+
+	//Renders the shopping cart page with the session cart lines.
 	public function index()
 	{
 		$this->render('pages/cart', [
@@ -11,7 +14,10 @@ class CartController extends MY_Controller {
 		]);
 	}
 
-	//Adds a part to the session cart, bumping the quantity when it is already present.
+	/*
+	 * Adds a part to the session cart, bumping the quantity when it is already
+	 * present, then redirects back to the browse page.
+	 */
 	public function add(int $part_id)
 	{
 		try {
@@ -68,9 +74,10 @@ class CartController extends MY_Controller {
 		}
 	}
 
-	//Adjusts a line's quantity by +1/-1 from a client-side request. Returns JSON
-	//so the page can update the totals without a reload. Removing the last unit
-	//drops the line, following the same rule the navbar badge uses.
+	/*
+	 * Adjusts a line's quantity by +1/-1 and returns JSON with the new totals
+	 * so the page can update without a reload. The last unit drops the line.
+	 */
 	public function update(int $part_id)
 	{
 		$this->output->set_content_type('application/json');
@@ -127,8 +134,10 @@ class CartController extends MY_Controller {
 		]));
 	}
 
-	//Removes a line from the session cart. Returns JSON so the page can update
-	//the totals and badge without a reload.
+	/*
+	 * Removes a line from the session cart and returns JSON so the page can
+	 * update the totals and badge without a reload.
+	 */
 	public function remove(int $part_id)
 	{
 		$this->output->set_content_type('application/json');

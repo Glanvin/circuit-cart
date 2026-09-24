@@ -14,16 +14,17 @@
             <h5>Support</h5>
             <ul class="nav flex-column">
                 <li class="nav-item mb-2 text-body-secondary">
-                    <i class="bi bi-headset me-1"></i>
-                    Support
-                </li>
-                <li class="nav-item mb-2 text-body-secondary">
                     <i class="bi bi-geo-alt me-1"></i>
                     <span>019 Corrales Ext, Cagayan de Oro City, Philippines</span>
                 </li>
                 <li class="nav-item mb-2">
                     <a href="mailto:support@circuit-cart.dev" class="nav-link p-0 text-body-secondary">
                         <i class="bi bi-envelope me-1"></i>support@circuit-cart.dev
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a href="<?= site_url('bugs') ?>" class="nav-link p-0 text-body-secondary">
+                        <i class="bi bi-bug me-1"></i>Report a Bug
                     </a>
                 </li>
             </ul>
@@ -84,7 +85,27 @@
     </div>
 </div>
 
+<div class="modal fade" id="bookRepairModal" tabindex="-1" aria-labelledby="bookRepairModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bookRepairModalLabel">Circuit Cart Account Required</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Booking a repair appointment requires a Circuit Cart account. Sign in or create an account to schedule your repair.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="<?= site_url('auth/signin') ?>" class="btn btn-primary">Sign In/Up</a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="<?= base_url('assets/js/bs/bootstrap.bundle.min.js');?>">
+</script>
+<script src="<?= base_url('assets/js/csrf.js');?>">
 </script>
 <script src="<?= base_url('assets/js/theme.js');?>">
 </script>

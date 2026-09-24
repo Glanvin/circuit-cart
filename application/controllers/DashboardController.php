@@ -7,6 +7,7 @@ class DashboardController extends MY_Controller {
 
 	protected ?string $requiredRole = 'admin';
 
+	//Renders the employee dashboard page.
 	public function index()
 	{
 		$this->render('pages/employees/dashboard', ['title' => 'Dashboard']);
