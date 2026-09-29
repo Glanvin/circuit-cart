@@ -1,7 +1,18 @@
 (function () {
     'use strict';
 
-    var data = { labels: [], storeSales: [], onlineSales: [], registrations: [], attendance: [], lowStockLabels: [], lowStock: [] };
+    var data = {
+        labels: [],
+        storeSales: [],
+        onlineSales: [],
+        registrations: [],
+        attendance: [],
+        lowStockLabels: [],
+        lowStock: [],
+        lowStockParts: [],
+        totals: {},
+        selected_days: 30
+    };
 
     try {
         var el = document.getElementById('analytics-data');
@@ -13,6 +24,7 @@
 
     var FONT = { WebkitFontSmoothing: 'antialiased', fontSize: '12px' };
     var GRID = { color: 'rgba(130,140,155,0.15)' };
+    var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
     function themeColor() {
         return document.documentElement.getAttribute('data-bs-theme') === 'dark' ? '#e9ecef' : '#495057';
@@ -23,6 +35,38 @@
         if (abs >= 1000000) return (value / 1000000).toFixed(1) + 'm';
         if (abs >= 1000) return (value / 1000).toFixed(1) + 'k';
         return value;
+    }
+
+    function toNumber(value) {
+        var n = Number(value);
+        return isNaN(n) ? 0 : n;
+    }
+
+    function formatMoney(value) {
+        var parts = toNumber(value).toFixed(2).split('.');
+        parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        return '\u20B1 ' + parts[0] + '.' + parts[1];
+    }
+
+    function formatDate(iso) {
+        var d = new Date(iso + 'T00:00:00');
+        if (isNaN(d.getTime())) return iso;
+        return MONTHS[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+    }
+
+    function escapeHtml(value) {
+        return String(value === null || value === undefined ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function setText(selector, text) {
+        document.querySelectorAll(selector).forEach(function (node) {
+            node.textContent = text;
+        });
     }
 
     function chartDefs() {
@@ -109,8 +153,131 @@
         });
     }
 
+    function refreshCharts() {
+        var defs = chartDefs();
+        Object.keys(charts).forEach(function (id) {
+            var def = defs[id];
+            if (!def) return;
+            charts[id].data.labels = def.data.labels;
+            charts[id].data.datasets = def.data.datasets;
+            charts[id].update();
+        });
+    }
+
     function chartFromTarget(target) {
         return target + 'Chart';
+    }
+
+    function renderTables(d) {
+        var salesBody = document.querySelector('#db-sales tbody');
+        if (salesBody) {
+            var sales = '';
+            for (var i = 0; i < d.labels.length; i++) {
+                var store = toNumber(d.storeSales[i]);
+                var online = toNumber(d.onlineSales[i]);
+                sales += '<tr>'
+                    + '<td class="text-nowrap">' + escapeHtml(formatDate(d.labels[i])) + '</td>'
+                    + '<td>' + escapeHtml(formatMoney(store)) + '</td>'
+                    + '<td>' + escapeHtml(formatMoney(online)) + '</td>'
+                    + '<td>' + escapeHtml(formatMoney(store + online)) + '</td>'
+                    + '</tr>';
+            }
+            salesBody.innerHTML = sales;
+        }
+
+        var usersBody = document.querySelector('#db-users tbody');
+        if (usersBody) {
+            var users = '';
+            for (var j = 0; j < d.labels.length; j++) {
+                users += '<tr>'
+                    + '<td class="text-nowrap">' + escapeHtml(formatDate(d.labels[j])) + '</td>'
+                    + '<td>' + toNumber(d.registrations[j]) + '</td>'
+                    + '</tr>';
+            }
+            usersBody.innerHTML = users;
+        }
+
+        var attendanceBody = document.querySelector('#db-attendance tbody');
+        if (attendanceBody) {
+            var attendance = '';
+            for (var k = 0; k < d.labels.length; k++) {
+                attendance += '<tr>'
+                    + '<td class="text-nowrap">' + escapeHtml(formatDate(d.labels[k])) + '</td>'
+                    + '<td>' + toNumber(d.attendance[k]) + '</td>'
+                    + '</tr>';
+            }
+            attendanceBody.innerHTML = attendance;
+        }
+
+        var inventoryBody = document.querySelector('#db-inventory tbody');
+        if (inventoryBody) {
+            var parts = d.lowStockParts || [];
+            if (parts.length) {
+                var inventory = '';
+                parts.forEach(function (part) {
+                    inventory += '<tr>'
+                        + '<th scope="row">' + escapeHtml(part.part_id) + '</th>'
+                        + '<td class="text-uppercase font-monospace">' + escapeHtml(part.sku) + '</td>'
+                        + '<td class="text-start">' + escapeHtml(part.part_name) + '</td>'
+                        + '<td>' + toNumber(part.stock_quantity) + '</td>'
+                        + '</tr>';
+                });
+                inventoryBody.innerHTML = inventory;
+            } else {
+                inventoryBody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">No inventory to display.</td></tr>';
+            }
+        }
+    }
+
+    function updateKpis(d) {
+        var totals = d.totals || {};
+        setText('[data-kpi="sales"]', formatMoney(totals.sales));
+        setText('[data-kpi="store"]', formatMoney(totals.store));
+        setText('[data-kpi="online"]', formatMoney(totals.online));
+        setText('[data-kpi="users"]', String(toNumber(totals.users)));
+        setText('[data-kpi="lowStock"]', String(toNumber(totals.lowStock)));
+        setText('[data-kpi="activeEmployees"]', String(toNumber(totals.activeEmployees)));
+        setText('[data-kpi="totalEmployees"]', String(toNumber(totals.totalEmployees)));
+        setText('[data-range-days]', String(toNumber(d.selected_days)));
+    }
+
+    function applyData(payload) {
+        data = Object.assign(data, payload);
+        renderTables(data);
+        updateKpis(data);
+        refreshCharts();
+        enhanceTables();
+    }
+
+    function bindRange() {
+        var form = document.getElementById('analyticsRange');
+        var select = document.getElementById('rangeDays');
+        if (!form || !select) return;
+
+        var url = form.getAttribute('data-url');
+        if (!url) return;
+
+        select.addEventListener('change', function () {
+            var days = select.value;
+            select.disabled = true;
+
+            fetch(url + '?days=' + encodeURIComponent(days), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                credentials: 'same-origin'
+            })
+                .then(function (response) {
+                    if (!response.ok) throw new Error('HTTP ' + response.status);
+                    return response.json();
+                })
+                .then(function (payload) {
+                    applyData(payload);
+                    select.disabled = false;
+                })
+                .catch(function () {
+                    //No fetch/JSON: fall back to the full page reload.
+                    form.submit();
+                });
+        });
     }
 
     function attachExportButtons() {
@@ -173,56 +340,76 @@
         document.body.removeChild(a);
     }
 
+    function applySearch(input, table) {
+        var tbody = table.tBodies[0];
+        if (!tbody) return;
+
+        var countEl = document.querySelector('[data-count="' + input.dataset.table + '"]');
+        var q = input.value.toLowerCase().trim();
+        var rows = Array.prototype.slice.call(tbody.rows);
+        var shown = 0;
+
+        rows.forEach(function (row) {
+            var ok = row.textContent.toLowerCase().indexOf(q) !== -1;
+            row.style.display = ok ? '' : 'none';
+            if (ok) shown++;
+        });
+
+        if (countEl) countEl.textContent = shown + ' of ' + rows.length;
+    }
+
+    function sortTable(table, th) {
+        var tbody = table.tBodies[0];
+        if (!tbody) return;
+
+        var idx = Array.prototype.indexOf.call(th.parentNode.children, th);
+        var dir = th.dataset.dir === 'asc' ? 'desc' : 'asc';
+
+        table.querySelectorAll('th[data-sort]').forEach(function (h) {
+            h.dataset.dir = '';
+            if (h.dataset.label) h.textContent = h.dataset.label;
+        });
+
+        th.dataset.dir = dir;
+        th.textContent = (th.dataset.label || th.textContent) + (dir === 'asc' ? ' \u2191' : ' \u2193');
+
+        var rows = Array.prototype.slice.call(tbody.rows);
+        rows.sort(function (a, b) {
+            var av = a.cells[idx] ? a.cells[idx].textContent.trim() : '';
+            var bv = b.cells[idx] ? b.cells[idx].textContent.trim() : '';
+            var an = parseFloat(av.replace(/[^0-9.\-]/g, ''));
+            var bn = parseFloat(bv.replace(/[^0-9.\-]/g, ''));
+            var r;
+            if (!isNaN(an) && !isNaN(bn) && av !== '') r = an - bn;
+            else r = av.localeCompare(bv, undefined, { numeric: true, sensitivity: 'base' });
+            return dir === 'asc' ? r : -r;
+        });
+        rows.forEach(function (row) { tbody.appendChild(row); });
+    }
+
     function enhanceTables() {
         document.querySelectorAll('.table-search').forEach(function (input) {
             var table = document.querySelector(input.dataset.table || '');
             if (!table) return;
-            var countEl = document.querySelector('[data-count="' + input.dataset.table + '"]');
-            var tbody = table.tBodies[0];
-            if (!tbody) return;
-            var rows = Array.prototype.slice.call(tbody.rows);
 
-            function applySearch() {
-                var q = input.value.toLowerCase().trim();
-                var shown = 0;
-                rows.forEach(function (row) {
-                    var ok = row.textContent.toLowerCase().indexOf(q) !== -1;
-                    row.style.display = ok ? '' : 'none';
-                    if (ok) shown++;
-                });
-                if (countEl) countEl.textContent = shown + ' of ' + rows.length;
+            if (input.dataset.enhanced === '1') {
+                applySearch(input, table);
+                return;
             }
+            input.dataset.enhanced = '1';
 
-            input.addEventListener('input', applySearch);
+            input.addEventListener('input', function () { applySearch(input, table); });
 
             table.querySelectorAll('th[data-sort]').forEach(function (th) {
                 th.style.cursor = 'pointer';
                 th.classList.add('user-select-none');
                 th.addEventListener('click', function () {
-                    var idx = Array.prototype.indexOf.call(th.parentNode.children, th);
-                    var dir = th.dataset.dir === 'asc' ? 'desc' : 'asc';
-                    table.querySelectorAll('th[data-sort]').forEach(function (h) {
-                        h.dataset.dir = '';
-                        h.textContent = h.dataset.label || h.textContent;
-                    });
-                    th.dataset.dir = dir;
-                    th.textContent = th.textContent + (dir === 'asc' ? ' \u2191' : ' \u2193');
-                    rows.sort(function (a, b) {
-                        var av = a.cells[idx] ? a.cells[idx].textContent.trim() : '';
-                        var bv = b.cells[idx] ? b.cells[idx].textContent.trim() : '';
-                        var an = parseFloat(av.replace(/[^0-9.\-]/g, ''));
-                        var bn = parseFloat(bv.replace(/[^0-9.\-]/g, ''));
-                        var r;
-                        if (!isNaN(an) && !isNaN(bn) && av !== '') r = an - bn;
-                        else r = av.localeCompare(bv, undefined, { numeric: true, sensitivity: 'base' });
-                        return dir === 'asc' ? r : -r;
-                    });
-                    rows.forEach(function (row) { tbody.appendChild(row); });
-                    applySearch();
+                    sortTable(table, th);
+                    applySearch(input, table);
                 });
             });
 
-            applySearch();
+            applySearch(input, table);
         });
     }
 
@@ -240,6 +427,7 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         enhanceTables();
+        bindRange();
 
         if (typeof Chart === 'undefined') {
             return;

@@ -1,21 +1,13 @@
 <div class="container-fluid p-4">
-    <script id="analytics-data" type="application/json"><?= json_encode([
-        'labels' => $labels,
-        'storeSales' => $storeSales,
-        'onlineSales' => $onlineSales,
-        'registrations' => $registrations,
-        'attendance' => $attendance,
-        'lowStockLabels' => $lowStockLabels,
-        'lowStock' => $lowStock,
-    ]) ?></script>
+    <script id="analytics-data" type="application/json"><?= json_encode($chart_payload, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?></script>
 
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
         <p class="text-muted mb-0">
             Online sales only count when <span class="badge text-bg-success">delivered</span>.
         </p>
-        <form method="get" action="<?= site_url('employee/analytics') ?>" class="d-flex align-items-center gap-2">
+        <form method="get" action="<?= site_url('employee/analytics') ?>" class="d-flex align-items-center gap-2" id="analyticsRange" data-url="<?= site_url('employee/analytics/data') ?>">
             <label class="form-label mb-0" for="rangeDays">Range</label>
-            <select class="form-select form-select-sm" style="width: auto;" name="days" id="rangeDays" onchange="this.form.submit()">
+            <select class="form-select form-select-sm" style="width: auto;" name="days" id="rangeDays">
                 <?php foreach ([7, 14, 30, 90] as $option): ?>
                     <option value="<?= $option ?>" <?= (int) $selected_days === $option ? 'selected' : '' ?>><?= $option ?> days</option>
                 <?php endforeach; ?>
@@ -27,8 +19,8 @@
         <div class="col-6 col-md-3">
             <div class="card shadow-sm text-center">
                 <div class="card-body">
-                    <h6 class="text-muted mb-1">Sales (<?= (int) $selected_days ?>d)</h6>
-                    <h3 class="mb-0">₱ <?= number_format((float) $totalSales, 2) ?></h3>
+                    <h6 class="text-muted mb-1">Sales (<span data-range-days><?= (int) $selected_days ?></span>d)</h6>
+                    <h3 class="mb-0" data-kpi="sales">₱ <?= number_format((float) $totalSales, 2) ?></h3>
                 </div>
             </div>
         </div>
@@ -36,7 +28,7 @@
             <div class="card shadow-sm text-center">
                 <div class="card-body">
                     <h6 class="text-muted mb-1">Store</h6>
-                    <h3 class="mb-0">₱ <?= number_format((float) $storeTotal, 2) ?></h3>
+                    <h3 class="mb-0" data-kpi="store">₱ <?= number_format((float) $storeTotal, 2) ?></h3>
                 </div>
             </div>
         </div>
@@ -44,7 +36,7 @@
             <div class="card shadow-sm text-center">
                 <div class="card-body">
                     <h6 class="text-muted mb-1">Online (Delivered)</h6>
-                    <h3 class="mb-0">₱ <?= number_format((float) $onlineTotal, 2) ?></h3>
+                    <h3 class="mb-0" data-kpi="online">₱ <?= number_format((float) $onlineTotal, 2) ?></h3>
                 </div>
             </div>
         </div>
@@ -52,7 +44,7 @@
             <div class="card shadow-sm text-center">
                 <div class="card-body">
                     <h6 class="text-muted mb-1">Users Registered</h6>
-                    <h3 class="mb-0"><?= (int) $usersTotal ?></h3>
+                    <h3 class="mb-0" data-kpi="users"><?= (int) $usersTotal ?></h3>
                 </div>
             </div>
         </div>
@@ -60,7 +52,7 @@
             <div class="card shadow-sm text-center">
                 <div class="card-body">
                     <h6 class="text-muted mb-1">Active Employees</h6>
-                    <h3 class="mb-0"><?= (int) $activeEmployees ?>/<?= (int) $totalEmployees ?></h3>
+                    <h3 class="mb-0"><span data-kpi="activeEmployees"><?= (int) $activeEmployees ?></span>/<span data-kpi="totalEmployees"><?= (int) $totalEmployees ?></span></h3>
                 </div>
             </div>
         </div>
@@ -68,7 +60,7 @@
             <div class="card shadow-sm text-center">
                 <div class="card-body">
                     <h6 class="text-muted mb-1">Low Stock Items</h6>
-                    <h3 class="mb-0"><?= (int) $lowStockCount ?></h3>
+                    <h3 class="mb-0" data-kpi="lowStock"><?= (int) $lowStockCount ?></h3>
                 </div>
             </div>
         </div>

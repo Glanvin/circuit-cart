@@ -31,8 +31,27 @@ class AnalyticsController extends MY_Controller {
 		}
 
 		$data['selected_days'] = $days;
+		$data['chart_payload'] = $this->chartPayload($data);
 
 		$this->render('pages/employees/analytics', $data);
+	}
+
+	//JSON feed used by the range selector to redraw the charts without a reload.
+	public function data()
+	{
+		$days = $this->requestedDays();
+
+		try {
+			$data = $this->chartData($days);
+		} catch (AppException $e) {
+			$data = $this->emptyChartData($days);
+		}
+
+		$data['selected_days'] = $days;
+
+		$this->output
+			->set_content_type('application/json')
+			->set_output(json_encode($this->chartPayload($data)));
 	}
 
 	//Fulfilment panel for online orders ("delivered" is what counts the sale).
@@ -198,6 +217,42 @@ class AnalyticsController extends MY_Controller {
 			'lowStockCount' => $lowStockCount,
 			'totalEmployees' => $totalEmployees,
 			'activeEmployees' => $activeEmployees,
+		];
+	}
+
+	//Narrows the aggregate down to the fields the charts and AJAX tables need.
+	private function chartPayload(array $data): array
+	{
+		$parts = [];
+
+		foreach ($data['lowStockParts'] as $part) {
+			$parts[] = [
+				'part_id' => $part['part_id'],
+				'sku' => $part['sku'],
+				'part_name' => $part['part_name'],
+				'stock_quantity' => (int) $part['stock_quantity'],
+			];
+		}
+
+		return [
+			'labels' => $data['labels'],
+			'storeSales' => $data['storeSales'],
+			'onlineSales' => $data['onlineSales'],
+			'registrations' => $data['registrations'],
+			'attendance' => $data['attendance'],
+			'lowStockLabels' => $data['lowStockLabels'],
+			'lowStock' => $data['lowStock'],
+			'lowStockParts' => $parts,
+			'selected_days' => (int) $data['selected_days'],
+			'totals' => [
+				'sales' => $data['totalSales'],
+				'store' => $data['storeTotal'],
+				'online' => $data['onlineTotal'],
+				'users' => $data['usersTotal'],
+				'lowStock' => $data['lowStockCount'],
+				'activeEmployees' => $data['activeEmployees'],
+				'totalEmployees' => $data['totalEmployees'],
+			],
 		];
 	}
 

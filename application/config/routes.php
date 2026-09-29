@@ -77,6 +77,7 @@ $route['storage/bugs/status/(:num)/(:any)'] = 'EmployeeBugController/status/$1/$
 
 $route['employee/dashboard'] = 'DashboardController';
 $route['employee/analytics'] = 'AnalyticsController';
+$route['employee/analytics/data'] = 'AnalyticsController/data';
 $route['employee/orders'] = 'AnalyticsController/orders';
 $route['employee/orders/status/(:num)/(:any)'] = 'AnalyticsController/orderStatus/$1/$2';
 $route['employee/attendance'] = 'AttendanceController';
