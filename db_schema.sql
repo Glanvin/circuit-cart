@@ -11,11 +11,11 @@
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS tbl_employees (
     employee_id        INT(6) UNSIGNED ZEROFILL AUTO_INCREMENT PRIMARY KEY,
-    username           VARCHAR(20)   NOT NULL UNIQUE,
     firstname          VARCHAR(100)  NOT NULL,
     middlename         VARCHAR(100)  NULL,
     lastname           VARCHAR(100)  NOT NULL,
     email              VARCHAR(100)  NOT NULL UNIQUE,
+    verified_email     TINYINT(1)    NOT NULL DEFAULT 0,
     contactnumber      VARCHAR(100)  NOT NULL,
     password           VARCHAR(255)  NOT NULL,
     role               VARCHAR(20)   NOT NULL DEFAULT 'cashier',
@@ -48,15 +48,15 @@ CREATE TABLE IF NOT EXISTS tbl_sales (
 -- the 6-digit ID (000001-000006); the customer logs in with username demo.
 -- ---------------------------------------------------------------------------
 INSERT INTO tbl_employees
-    (employee_id, username, firstname, middlename, lastname, email, contactnumber, password, role, attendance_history)
+    (employee_id, firstname, middlename, lastname, email, verified_email, contactnumber, password, role, attendance_history)
 VALUES
-    (NULL, 'admin',      'Ada',        '', 'Admin',      'admin@circuit-cart.dev',      '09170000001', '$2y$10$BF1Bn8hQc91vxhEJZGoZZOnFNSr64taTu2BpiQC15XMjovmCXiaXS', 'admin',      NULL),
-    (NULL, 'cashier',    'Casey',      '', 'Cashier',    'cashier@circuit-cart.dev',    '09170000002', '$2y$10$BF1Bn8hQc91vxhEJZGoZZOnFNSr64taTu2BpiQC15XMjovmCXiaXS', 'cashier',    NULL),
-    (NULL, 'manager',    'Morgan',     '', 'Manager',    'manager@circuit-cart.dev',    '09170000003', '$2y$10$BF1Bn8hQc91vxhEJZGoZZOnFNSr64taTu2BpiQC15XMjovmCXiaXS', 'manager',    NULL),
-    (NULL, 'technician', 'Taylor',     '', 'Technician', 'technician@circuit-cart.dev', '09170000004', '$2y$10$BF1Bn8hQc91vxhEJZGoZZOnFNSr64taTu2BpiQC15XMjovmCXiaXS', 'technician', NULL),
-    (NULL, 'developer',  'Dev',        '', 'Developer',  'developer@circuit-cart.dev',  '09170000005', '$2y$10$BF1Bn8hQc91vxhEJZGoZZOnFNSr64taTu2BpiQC15XMjovmCXiaXS', 'developer',  NULL),
-    (NULL, 'logistics',  'Louis',      '', 'Logistics',  'logistics@circuit-cart.dev',  '09170000006', '$2y$10$BF1Bn8hQc91vxhEJZGoZZOnFNSr64taTu2BpiQC15XMjovmCXiaXS', 'logistics',  NULL)
-    ON DUPLICATE KEY UPDATE username = VALUES(username);
+    (NULL, 'Ada',        '', 'Admin',      'admin@circuit-cart.dev',      1, '09170000001', '$2y$10$BF1Bn8hQc91vxhEJZGoZZOnFNSr64taTu2BpiQC15XMjovmCXiaXS', 'admin',      NULL),
+    (NULL, 'Casey',      '', 'Cashier',    'cashier@circuit-cart.dev',    1, '09170000002', '$2y$10$BF1Bn8hQc91vxhEJZGoZZOnFNSr64taTu2BpiQC15XMjovmCXiaXS', 'cashier',    NULL),
+    (NULL, 'Morgan',     '', 'Manager',    'manager@circuit-cart.dev',    1, '09170000003', '$2y$10$BF1Bn8hQc91vxhEJZGoZZOnFNSr64taTu2BpiQC15XMjovmCXiaXS', 'manager',    NULL),
+    (NULL, 'Taylor',     '', 'Technician', 'technician@circuit-cart.dev', 1, '09170000004', '$2y$10$BF1Bn8hQc91vxhEJZGoZZOnFNSr64taTu2BpiQC15XMjovmCXiaXS', 'technician', NULL),
+    (NULL, 'Dev',        '', 'Developer',  'developer@circuit-cart.dev',  1, '09170000005', '$2y$10$BF1Bn8hQc91vxhEJZGoZZOnFNSr64taTu2BpiQC15XMjovmCXiaXS', 'developer',  NULL),
+    (NULL, 'Louis',      '', 'Logistics',  'logistics@circuit-cart.dev',  1, '09170000006', '$2y$10$BF1Bn8hQc91vxhEJZGoZZOnFNSr64taTu2BpiQC15XMjovmCXiaXS', 'logistics',  NULL)
+    ON DUPLICATE KEY UPDATE password = VALUES(password);
 
 INSERT INTO tbl_users
     (id, username, firstname, middlename, lastname, email, verified_email, contactnumber, address, password, role, userhistory, account_created)

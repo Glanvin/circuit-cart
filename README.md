@@ -98,13 +98,13 @@ Built on **CodeIgniter 3** with **Bootstrap 5**, **MySQL**, and a custom **Toast
    ```sql
    CREATE TABLE tbl_employees (
        employee_id        INT(6) UNSIGNED ZEROFILL AUTO_INCREMENT PRIMARY KEY,
-       username           VARCHAR(20)  NOT NULL UNIQUE,
        password           VARCHAR(255) NOT NULL,
        firstname          VARCHAR(50)  NOT NULL,
        middlename         VARCHAR(50)  NULL,
        lastname           VARCHAR(50)  NOT NULL,
        contactnumber      VARCHAR(10)  NULL,
        email              VARCHAR(255) NOT NULL UNIQUE,
+       verified_email     TINYINT(1)   NOT NULL DEFAULT 0,
        role               ENUM('cashier','manager','technician','admin','developer','logistics') NOT NULL DEFAULT 'cashier',
        is_active          TINYINT(1)   NOT NULL DEFAULT 1,
        attendance_history JSON         NULL,
@@ -125,17 +125,19 @@ Built on **CodeIgniter 3** with **Bootstrap 5**, **MySQL**, and a custom **Toast
        created_at        TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP
    );
    ```
-   Demo accounts — every demo password is `password123`:
+   Demo accounts — every demo password is `password123`. Employees sign in with
+   their 6-digit Employee ID (there is no employee username); the customer signs
+   in with username `demo`:
 
-   | Portal | Login | Employee ID / Username | Role |
-   |---|---|---|---|
-   | Employee | `000001` | **admin** | Admin |
-   | Employee | `000002` | **cashier** | Cashier |
-   | Employee | `000003` | **manager** | Manager |
-   | Employee | `000004` | **technician** | Technician |
-   | Employee | `000005` | **developer** | Developer |
-   | Employee | `000006` | **logistics** | Logistics |
-   | Customer | `demo` | demo | Customer (user) |
+   | Portal | Login | Role |
+   |---|---|---|
+   | Employee | `000001` | Admin |
+   | Employee | `000002` | Cashier |
+   | Employee | `000003` | Manager |
+   | Employee | `000004` | Technician |
+   | Employee | `000005` | Developer |
+   | Employee | `000006` | Logistics |
+   | Customer | `demo` | Customer (user) |
 10. Point your browser at `http://localhost/ci3/`.
 
 > The DB config uses XAMPP defaults (`root`, empty password). Do not ship that to production.

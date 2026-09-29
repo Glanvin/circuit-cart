@@ -53,7 +53,7 @@ class PosController extends MY_Controller {
 		try {
 			$sale = $this->SalesModel->recordSale([
 				'origin' => 'store',
-				'sold_by' => (string) $this->session->userdata('employee_username'),
+				'sold_by' => (string) $this->session->userdata('employee_name'),
 				'items' => $items,
 				'tendered' => $tendered,
 			]);

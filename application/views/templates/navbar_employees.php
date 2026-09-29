@@ -69,9 +69,10 @@ $titleClass = fn(string $match): string => strtolower($title ?? '') == $match ? 
                 <div class="dropdown">
                     <button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-person-circle fs-5 me-1"></i>
-                        <?= html_escape($this->session->userdata('employee_username')) ?>
+                        <?= html_escape($this->session->userdata('employee_name')) ?>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                        <li><a class="dropdown-item" href="<?= site_url('employee/settings') ?>">Settings</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li>
                             <button type="button" class="btn btn-outline-danger btn-sm border-0 w-100 text-start rounded-0" data-bs-toggle="modal" data-bs-target="#signOutModal">Sign Out</button>

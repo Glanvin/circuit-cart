@@ -8,7 +8,7 @@ function check_session(string $namespace = 'customer')
 {
     $CI =& get_instance();
 
-    $key = $namespace === 'employee' ? 'employee_username' : 'username';
+    $key = $namespace === 'employee' ? 'employee_id' : 'username';
 
     if (empty($CI->session->userdata($key))) {
         throw new AppException('S01');

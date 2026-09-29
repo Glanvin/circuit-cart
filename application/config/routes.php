@@ -85,6 +85,12 @@ $route['employee/attendance/in'] = 'AttendanceController/timeIn';
 $route['employee/attendance/out'] = 'AttendanceController/timeOut';
 $route['employee/manage/users'] = 'ManagementController/users';
 $route['employee/manage/employees'] = 'ManagementController/employees';
+$route['employee/manage/employees/new'] = 'ManagementController/newEmployee';
+
+$route['employee/settings'] = 'EmployeeSettingsController';
+$route['employee/settings/updateProfile'] = 'EmployeeSettingsController/updateProfile';
+$route['employee/settings/updatePassword'] = 'EmployeeSettingsController/updatePassword';
+$route['employee/settings/verify'] = 'EmployeeSettingsController/verify';
 
 $route['employee'] = 'EmployeeAuthController';
 $route['employee/signin'] = 'EmployeeAuthController/signin';

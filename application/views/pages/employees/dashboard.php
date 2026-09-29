@@ -1,6 +1,6 @@
 <div class="container-fluid p-4">
     <h1 class="h4 mb-1">Admin Dashboard</h1>
-    <p class="text-muted mb-4">Signed in as <strong><?= html_escape($this->session->userdata('employee_username')) ?></strong> (<?= html_escape($this->session->userdata('employee_role')) ?>).</p>
+    <p class="text-muted mb-4">Signed in as <strong><?= html_escape($this->session->userdata('employee_name')) ?></strong> (<?= html_escape($this->session->userdata('employee_role')) ?>).</p>
 
     <div class="row g-4">
         <div class="col-md-6 col-lg-4">

@@ -3,9 +3,9 @@
         <span class="text-muted">
             Employee accounts sign in with their 6-digit <b>Employee ID</b>.
         </span>
-        <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#newEmployeeModal">
+        <a href="<?= site_url('employee/manage/employees/new') ?>" class="btn btn-sm btn-outline-success">
             Add Employee
-        </button>
+        </a>
     </div>
 
     <div class="table-responsive">
@@ -14,7 +14,6 @@
                 <tr>
                     <th scope="col">Employee ID</th>
                     <th scope="col">Name</th>
-                    <th scope="col">Username</th>
                     <th scope="col">Email</th>
                     <th scope="col">Role</th>
                     <th scope="col">Status</th>
@@ -29,7 +28,6 @@
                             <td class="text-start">
                                 <?= html_escape(trim($employee['firstname'] . ' ' . ($employee['middlename'] ?? '') . ' ' . $employee['lastname'])) ?>
                             </td>
-                            <td><?= html_escape($employee['username']) ?></td>
                             <td><?= html_escape($employee['email']) ?></td>
                             <td>
                                 <?= form_open('employee/manage/employees'); ?>
@@ -77,76 +75,10 @@
                         </tr>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <tr><td colspan="9" class="text-center text-muted py-4">No employees found.</td></tr>
+                    <tr><td colspan="8" class="text-center text-muted py-4">No employees found.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>
-    </div>
-</div>
-
-<div class="modal fade" id="newEmployeeModal" tabindex="-1" aria-labelledby="newEmployeeModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <?= form_open('employee/manage/employees'); ?>
-                <input type="hidden" name="employee_action" value="create">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="newEmployeeModalLabel">Add Employee</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label" for="empUsername">Username</label>
-                            <input type="text" class="form-control <?= is_invalid('username') ?>" id="empUsername" name="username" value="<?= set_value('username') ?>" minlength="3" maxlength="20">
-                            <?= form_error('username', '<div class="invalid-feedback">', '</div>') ?>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label" for="empEmail">Email</label>
-                            <input type="email" class="form-control <?= is_invalid('email') ?>" id="empEmail" name="email" value="<?= set_value('email') ?>">
-                            <?= form_error('email', '<div class="invalid-feedback">', '</div>') ?>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label" for="empFirst">First Name</label>
-                            <input type="text" class="form-control <?= is_invalid('firstname') ?>" id="empFirst" name="firstname" value="<?= set_value('firstname') ?>">
-                            <?= form_error('firstname', '<div class="invalid-feedback">', '</div>') ?>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label" for="empMiddle">Middle Name</label>
-                            <input type="text" class="form-control <?= is_invalid('middlename') ?>" id="empMiddle" name="middlename" value="<?= set_value('middlename') ?>">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label" for="empLast">Last Name</label>
-                            <input type="text" class="form-control <?= is_invalid('lastname') ?>" id="empLast" name="lastname" value="<?= set_value('lastname') ?>">
-                            <?= form_error('lastname', '<div class="invalid-feedback">', '</div>') ?>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label" for="empPhone">Phone Number</label>
-                            <input type="tel" class="form-control <?= is_invalid('contactnumber') ?>" id="empPhone" name="contactnumber" value="<?= set_value('contactnumber') ?>" maxlength="10">
-                            <?= form_error('contactnumber', '<div class="invalid-feedback">', '</div>') ?>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label" for="empPassword">Password</label>
-                            <input type="password" class="form-control <?= is_invalid('password') ?>" id="empPassword" name="password" value="<?= set_value('password') ?>" minlength="6">
-                            <?= form_error('password', '<div class="invalid-feedback">', '</div>') ?>
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label" for="empRole">Role</label>
-                            <select class="form-select <?= is_invalid('role') ?>" id="empRole" name="role">
-                                <option value="">Select role</option>
-                                <?php foreach ($employee_roles as $role): ?>
-                                    <option value="<?= $role ?>" <?= set_select('role', $role) ?>><?= ucfirst($role) ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                            <?= form_error('role', '<div class="invalid-feedback">', '</div>') ?>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-success">Create Employee</button>
-                </div>
-            <?= form_close(); ?>
-        </div>
     </div>
 </div>
 

@@ -74,6 +74,21 @@ class ManagementController extends MY_Controller {
 		]);
 	}
 
+	//Standalone add-employee page (no modal, no username field).
+	public function newEmployee()
+	{
+		if ($this->input->post('employee_action')) {
+			if ($this->createEmployee() > 0) {
+				redirect('employee/manage/employees', 'refresh');
+			}
+		}
+
+		$this->render('pages/employees/new_employee', [
+			'title' => 'Add Employee',
+			'employee_roles' => $this->config->item('employee_roles'),
+		]);
+	}
+
 	private function handleEmployeeAction(): void
 	{
 		$action = (string) $this->input->post('employee_action', true);
@@ -131,26 +146,25 @@ class ManagementController extends MY_Controller {
 		}
 	}
 
-	private function createEmployee(): void
+	private function createEmployee(): int
 	{
 		$rules = $this->config->item('employee_create');
 		$this->form_validation->set_rules($rules);
 
 		if ($this->form_validation->run() === FALSE) {
 			$this->toastify->error('Please correct the highlighted fields');
-			return;
+			return 0;
 		}
 
 		$role = (string) $this->input->post('role', true);
 
 		if (!in_array($role, $this->config->item('employee_roles'), true)) {
 			$this->toastify->error('Invalid employee role.');
-			return;
+			return 0;
 		}
 
 		try {
-			$this->EmployeeModel->createEmployee([
-				'username' => strtolower($this->input->post('username', true)),
+			$employee_id = $this->EmployeeModel->createEmployee([
 				'firstname' => ucfirst($this->input->post('firstname', true)),
 				'middlename' => ucfirst($this->input->post('middlename', true)),
 				'lastname' => ucfirst($this->input->post('lastname', true)),
@@ -162,9 +176,11 @@ class ManagementController extends MY_Controller {
 				'is_active' => 1,
 			]);
 
-			$this->toastify->success('Employee created with a 6-digit ID.');
+			$this->toastify->success('Employee created with ID ' . sprintf('%06d', $employee_id) . '.');
+			return (int) $employee_id;
 		} catch (AppException $e) {
 			$this->toastify->error($e->toToast());
+			return 0;
 		}
 	}
 }

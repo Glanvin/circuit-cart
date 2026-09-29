@@ -53,6 +53,18 @@ class EmployeeModel extends CI_Model {
         return $query->result_array();
     }
 
+    //Finds an employee by email address, or returns NULL when none matches.
+    public function findEmployeeByEmail($email) {
+        $this->db->where('email', strtolower((string) $email));
+        $query = $this->db->get('tbl_employees');
+
+        if (!$query) {
+            throw new AppException('Q07');
+        }
+
+        return $query->num_rows() > 0 ? $query->row_array() : NULL;
+    }
+
     public function createEmployee($data) {
         if (empty($data)) {
             throw new AppException('D01');

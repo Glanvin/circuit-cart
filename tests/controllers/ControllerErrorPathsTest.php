@@ -65,7 +65,8 @@ class ControllerErrorPathsTest extends TestCase {
 
 	public function testStockRequiresAdmin() {
 		redirect_stop(TRUE);
-		$this->session->set_userdata('employee_username', 'cashier1');
+		$this->session->set_userdata('employee_id', 6);
+		$this->session->set_userdata('employee_name', 'Casey Cashier');
 		$this->session->set_userdata('employee_role', 'cashier');
 
 		try {
@@ -78,7 +79,8 @@ class ControllerErrorPathsTest extends TestCase {
 	}
 
 	public function testStockRendersPartsForAdmin() {
-		$this->session->set_userdata('employee_username', 'alice');
+		$this->session->set_userdata('employee_id', 1);
+		$this->session->set_userdata('employee_name', 'Alice Admin');
 		$this->session->set_userdata('employee_role', 'admin');
 		$this->db->rows = [['part_id' => 1, 'sku' => 'ABC-1', 'stock_quantity' => 5]];
 
@@ -91,7 +93,8 @@ class ControllerErrorPathsTest extends TestCase {
 	}
 
 	public function testStockRendersEmptyPartsOnQueryFailureWithToast() {
-		$this->session->set_userdata('employee_username', 'alice');
+		$this->session->set_userdata('employee_id', 1);
+		$this->session->set_userdata('employee_name', 'Alice Admin');
 		$this->session->set_userdata('employee_role', 'admin');
 		$this->db->failQuery = TRUE;
 
@@ -104,7 +107,8 @@ class ControllerErrorPathsTest extends TestCase {
 	}
 
 	public function testStockStubMethodsAreCallableNoops() {
-		$this->session->set_userdata('employee_username', 'alice');
+		$this->session->set_userdata('employee_id', 1);
+		$this->session->set_userdata('employee_name', 'Alice Admin');
 		$this->session->set_userdata('employee_role', 'admin');
 		$c = make_my_controller(StockController::class, $this->session, $this->toastify, $this->db, $this->loader);
 
