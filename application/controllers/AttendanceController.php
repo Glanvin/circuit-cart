@@ -3,6 +3,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class AttendanceController extends MY_Controller {
 
+	protected bool $employeePortal = TRUE;
+
 	protected string $navbar = 'templates/navbar_employees';
 
 	protected array $allowedRoles = ['cashier', 'manager', 'technician', 'admin', 'developer', 'logistics'];
@@ -10,7 +12,7 @@ class AttendanceController extends MY_Controller {
 	//Roles that may view and clock in/out attendance for other employees.
 	private function canManageOthers(): bool
 	{
-		return in_array($this->session->userdata('role'), ['manager', 'admin'], true);
+		return in_array($this->session->userdata('employee_role'), ['manager', 'admin'], true);
 	}
 
 	//Resolves which employee attendance to show: anyone for manager/admin, self otherwise.

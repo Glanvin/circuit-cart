@@ -26,7 +26,7 @@
                 <div class="dropdown">
                     <button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-person-circle fs-5 me-1"></i>
-                        <?= html_escape($this->session->userdata('username')) ?>
+                        <?= html_escape($this->session->userdata('employee_username')) ?>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                         <li><a class="dropdown-item" href="<?= site_url('employee/attendance') ?>">Attendance</a></li>

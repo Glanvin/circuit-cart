@@ -3,6 +3,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class AnalyticsController extends MY_Controller {
 
+	protected bool $employeePortal = TRUE;
+
 	protected string $navbar = 'templates/navbar_employees';
 
 	protected array $allowedRoles = ['manager', 'admin'];

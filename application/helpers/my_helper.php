@@ -1,12 +1,16 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-//Checks whether the current user has a valid session.
-function check_session()
+//Checks whether the current user has a valid session. The employee namespace
+//is used by the employee portal (employee_* keys); everything else uses the
+//customer namespace (username/role/email).
+function check_session(string $namespace = 'customer')
 {
     $CI =& get_instance();
 
-    if (empty($CI->session->userdata('username'))) {
+    $key = $namespace === 'employee' ? 'employee_username' : 'username';
+
+    if (empty($CI->session->userdata($key))) {
         throw new AppException('S01');
     }
 }

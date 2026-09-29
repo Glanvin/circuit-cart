@@ -1,4 +1,15 @@
 <?php if (!empty($enable_footer)):?>
+<?php
+$portal = (string) ($portal ?? '');
+if ($portal === 'employee') {
+    $signOutUrl = site_url('employee/signout');
+} elseif ($portal === 'customer') {
+    $signOutUrl = site_url('auth/signout');
+} else {
+    $signOutUrl = $this->session->userdata('employee_id')
+        ? site_url('employee/signout') : site_url('auth/signout');
+}
+?>
 <div class="container mt-auto">
     <footer class="row row-cols-1 row-cols-sm-2 row-cols-md-5 py-5 my-5 border-top">
         <div class="col mb-3">
@@ -80,7 +91,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <a href="<?= site_url('auth/signout') ?>" class="btn btn-danger">Sign Out</a>
+                <a href="<?= $signOutUrl ?>" class="btn btn-danger">Sign Out</a>
             </div>
         </div>
     </div>

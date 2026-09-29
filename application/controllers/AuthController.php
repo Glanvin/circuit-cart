@@ -6,30 +6,30 @@ class AuthController extends CI_Controller {
     //Entry point for authentication.
     public function index()
     {
-        if ($this->session->userdata('username')) {
-            if ($this->session->userdata('employee_id')) {
-                $homes = $this->config->item('role_home');
-                $role = $this->session->userdata('role');
-                redirect(is_array($homes) && isset($homes[$role]) ? $homes[$role] : 'employee/dashboard');
-            }
+        if ($this->session->userdata('employee_id')) {
+            $homes = $this->config->item('role_home');
+            $role = $this->session->userdata('employee_role');
+            redirect(is_array($homes) && isset($homes[$role]) ? $homes[$role] : 'employee/dashboard');
+        }
 
-            redirect($this->session->userdata('role') === 'admin' ? 'employee/dashboard' : 'home');
+        if ($this->session->userdata('username')) {
+            redirect('home');
         }
 
         $this->signin();
     }
 
-    //Signs the user out and clears the session.
+    //Signs the customer out and clears their session.
     public function signout()
     {
-        $this->session->unset_userdata(array('username', 'role', 'email', 'employee_id'));
+        $this->session->unset_userdata(array('username', 'role', 'email'));
         $this->toastify->success('You have been signed out.');
         redirect('auth/signin');
     }
 
     /*
-     * Shows the sign-in form and authenticates submitted credentials, routing
-     * admins to the employee dashboard and everyone else to the home page.
+     * Shows the sign-in form and authenticates submitted credentials, sending
+     * the customer to the home page.
      */
     public function signin()
     {
@@ -57,7 +57,7 @@ class AuthController extends CI_Controller {
                         $this->session->set_userdata('username', $response['username']);
                         $this->session->set_userdata('role', $response['role']);
                         $this->session->set_userdata('email', $response['email']);
-                        redirect($response['role'] === 'admin' ? 'employee/dashboard' : 'home');
+                        redirect('home');
                     }else {
                         $this->toastify->error("Invalid credentials passed");
                     }

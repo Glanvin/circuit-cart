@@ -94,7 +94,7 @@ Built on **CodeIgniter 3** with **Bootstrap 5**, **MySQL**, and a custom **Toast
    ```
    `username`/`email` hold the submitter (guests fill in the email, signed-in users are recorded by username). No IP addresses are ever stored.
 8. Ensure `storage/bugs/` exists and is writable (bug-report screenshots are stored there, 3 MB max each, up to 3 per report, only for signed-in users). The folder is already git-ignored.
-9. Create the employee and sales tables (or run the bundled `db_schema.sql`, which also seeds 7 demo employees and ~21 sales):
+9. Create the employee and sales tables (or run the bundled `db_schema.sql`, which also seeds 6 demo employees and a customer `demo` account):
    ```sql
    CREATE TABLE tbl_employees (
        employee_id        INT(6) UNSIGNED ZEROFILL AUTO_INCREMENT PRIMARY KEY,
@@ -125,7 +125,17 @@ Built on **CodeIgniter 3** with **Bootstrap 5**, **MySQL**, and a custom **Toast
        created_at        TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP
    );
    ```
-   Demo employees all use password `password123` — admin=`000001`, cashier=`000002`, manager=`000003`, technician=`000004`, developer=`000005`, logistics=`000006`, `000007` is deactivated.
+   Demo accounts — every demo password is `password123`:
+
+   | Portal | Login | Employee ID / Username | Role |
+   |---|---|---|---|
+   | Employee | `000001` | **admin** | Admin |
+   | Employee | `000002` | **cashier** | Cashier |
+   | Employee | `000003` | **manager** | Manager |
+   | Employee | `000004` | **technician** | Technician |
+   | Employee | `000005` | **developer** | Developer |
+   | Employee | `000006` | **logistics** | Logistics |
+   | Customer | `demo` | demo | Customer (user) |
 10. Point your browser at `http://localhost/ci3/`.
 
 > The DB config uses XAMPP defaults (`root`, empty password). Do not ship that to production.

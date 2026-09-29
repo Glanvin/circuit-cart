@@ -65,7 +65,8 @@ class ControllerErrorPathsTest extends TestCase {
 
 	public function testStockRequiresAdmin() {
 		redirect_stop(TRUE);
-		$this->session->set_userdata('role', 'staff');
+		$this->session->set_userdata('employee_username', 'cashier1');
+		$this->session->set_userdata('employee_role', 'cashier');
 
 		try {
 			make_my_controller(StockController::class, $this->session, $this->toastify, $this->db, $this->loader);
@@ -73,11 +74,12 @@ class ControllerErrorPathsTest extends TestCase {
 		} catch (RedirectException $e) {
 		}
 
-		$this->assertSame('home', redirect_target());
+		$this->assertSame('pos', redirect_target());
 	}
 
 	public function testStockRendersPartsForAdmin() {
-		$this->session->set_userdata('role', 'admin');
+		$this->session->set_userdata('employee_username', 'alice');
+		$this->session->set_userdata('employee_role', 'admin');
 		$this->db->rows = [['part_id' => 1, 'sku' => 'ABC-1', 'stock_quantity' => 5]];
 
 		$c = make_my_controller(StockController::class, $this->session, $this->toastify, $this->db, $this->loader);
@@ -89,7 +91,8 @@ class ControllerErrorPathsTest extends TestCase {
 	}
 
 	public function testStockRendersEmptyPartsOnQueryFailureWithToast() {
-		$this->session->set_userdata('role', 'admin');
+		$this->session->set_userdata('employee_username', 'alice');
+		$this->session->set_userdata('employee_role', 'admin');
 		$this->db->failQuery = TRUE;
 
 		$c = make_my_controller(StockController::class, $this->session, $this->toastify, $this->db, $this->loader);
@@ -101,7 +104,8 @@ class ControllerErrorPathsTest extends TestCase {
 	}
 
 	public function testStockStubMethodsAreCallableNoops() {
-		$this->session->set_userdata('role', 'admin');
+		$this->session->set_userdata('employee_username', 'alice');
+		$this->session->set_userdata('employee_role', 'admin');
 		$c = make_my_controller(StockController::class, $this->session, $this->toastify, $this->db, $this->loader);
 
 		$c->addStock();

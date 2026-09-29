@@ -3,6 +3,8 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class PosController extends MY_Controller {
 
+	protected bool $employeePortal = TRUE;
+
 	protected string $navbar = 'templates/navbar_cashier';
 
 	protected array $allowedRoles = ['cashier', 'admin'];
@@ -51,7 +53,7 @@ class PosController extends MY_Controller {
 		try {
 			$sale = $this->SalesModel->recordSale([
 				'origin' => 'store',
-				'sold_by' => (string) $this->session->userdata('username'),
+				'sold_by' => (string) $this->session->userdata('employee_username'),
 				'items' => $items,
 				'tendered' => $tendered,
 			]);

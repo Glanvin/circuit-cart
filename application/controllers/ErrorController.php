@@ -15,7 +15,9 @@ class ErrorController extends CI_Controller {
 
         $this->load->view('templates/header', $data);
 
-        if ($this->session->userdata('username')) {
+        if ($this->session->userdata('employee_id')) {
+            $this->load->view('templates/navbar_employees', $data);
+        } elseif ($this->session->userdata('username')) {
             $this->load->view('templates/navbar', $data);
         }
 

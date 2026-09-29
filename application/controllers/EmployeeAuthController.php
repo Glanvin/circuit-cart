@@ -17,7 +17,7 @@ class EmployeeAuthController extends CI_Controller {
     //The landing page per the sign-in employee's role (config/roles.php).
     private function roleHome(): string
     {
-        $role = (string) $this->session->userdata('role');
+        $role = (string) $this->session->userdata('employee_role');
         $homes = $this->config->item('role_home');
 
         return is_array($homes) && isset($homes[$role]) ? (string) $homes[$role] : 'employee/signin';
@@ -46,9 +46,9 @@ class EmployeeAuthController extends CI_Controller {
                     } elseif (password_verify($password, $employee['password'])) {
                         $this->toastify->success('Welcome back, ' . $employee['firstname'] . '.');
                         $this->session->set_userdata('employee_id', (int) $employee['employee_id']);
-                        $this->session->set_userdata('username', $employee['username']);
-                        $this->session->set_userdata('role', $employee['role']);
-                        $this->session->set_userdata('email', $employee['email']);
+                        $this->session->set_userdata('employee_username', $employee['username']);
+                        $this->session->set_userdata('employee_role', $employee['role']);
+                        $this->session->set_userdata('employee_email', $employee['email']);
 
                         redirect($this->roleHome(), 'refresh');
                     } else {
@@ -68,7 +68,7 @@ class EmployeeAuthController extends CI_Controller {
 
     public function signout()
     {
-        $this->session->unset_userdata(array('username', 'role', 'email', 'employee_id'));
+        $this->session->unset_userdata(array('employee_username', 'employee_role', 'employee_email', 'employee_id'));
         $this->toastify->success('You have been signed out.');
         redirect('employee/signin');
     }
