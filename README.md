@@ -8,7 +8,7 @@ Built on **CodeIgniter 3** with **Bootstrap 5**, **MySQL**, and a custom **Toast
 
 | Guide | Contents |
 | --- | --- |
-| [SETUP.md](SETUP.md) | Requirements and full installation walkthrough (database, schema, demo accounts) |
+| [SETUP.md](SETUP.md) | Requirements, installation, the `db_schema.sql` table reference, and demo accounts |
 | [TESTING.md](TESTING.md) | How the PHPUnit suite works, how to run it, how to write new tests |
 
 ## Features

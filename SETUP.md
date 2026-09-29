@@ -7,6 +7,7 @@ Installation walkthrough for **Circuit Cart** (CodeIgniter 3 + MySQL). For a fea
 - PHP >= 7.2 (developed on PHP 8.1)
 - MySQL / MariaDB
 - XAMPP (or any Apache + PHP + MySQL stack)
+- Composer
 
 ## Installation
 
@@ -15,111 +16,74 @@ Installation walkthrough for **Circuit Cart** (CodeIgniter 3 + MySQL). For a fea
    ```bash
    composer install
    ```
-3. Create a database named `ci3_db` (or edit `application/config/database.php`) and create the `tech_parts` table:
-   ```sql
-   CREATE TABLE tech_parts (
-       part_id        INT(6) UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-       sku            VARCHAR(32) NOT NULL,
-       part_name      VARCHAR(128) NOT NULL,
-       device_type    VARCHAR(64) NOT NULL,
-       category       VARCHAR(64) NOT NULL,
-       cost_price     DECIMAL(10,2) NOT NULL,
-       selling_price  DECIMAL(10,2) NOT NULL,
-       stock_quantity INT NOT NULL DEFAULT 0,
-       is_active      TINYINT(1) NOT NULL DEFAULT 1
-   );
+3. Create the database and import the schema. `db_schema.sql` is the single
+   source of truth — it creates every table the app uses and seeds the demo
+   catalog, employees and customer account:
+   ```bash
+   mysql -u root -e "CREATE DATABASE circuit_cart"
+   mysql -u root circuit_cart < db_schema.sql
    ```
-4. Add the email-verification flag to the `tbl_users` table:
-   ```sql
-   ALTER TABLE tbl_users ADD COLUMN verified_email TINYINT(1) NOT NULL DEFAULT 0 AFTER email;
+   The script is idempotent (`IF NOT EXISTS` / `ON DUPLICATE KEY UPDATE`), so
+   re-running it against an existing database is safe.
+4. Point the app at that database. Credentials live in `.env` at the project
+   root, not in `application/config/database.php` (that file reads them from
+   environment variables):
+   ```ini
+   DATABASE_NAME="circuit_cart"
+   DATABASE_HOSTNAME="127.0.0.1"
+   DATABASE_PORT="3306"
+   DATABASE_USERNAME="root"
+   DATABASE_PASSWORD=""
+   BASE_URL="http://localhost/ci3/"
    ```
-5. Create the repair-booking table:
-   ```sql
-   CREATE TABLE tbl_booking (
-       id              INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-       username        VARCHAR(20)   NOT NULL,
-       device          VARCHAR(128)  NOT NULL,
-       issue           TEXT          NOT NULL,
-       preferred_date  DATE          NOT NULL,
-       preferred_time  TIME          NOT NULL,
-       status          ENUM('pending','approved','rescheduled','declined','finished') NOT NULL DEFAULT 'pending',
-       images          JSON          NULL,
-       created_at      TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP
-   );
-   ```
-   If the table was created before the `finished` status existed, migrate it with:
-    ```sql
-    ALTER TABLE tbl_booking
-        MODIFY COLUMN status ENUM('pending','approved','rescheduled','declined','finished') NOT NULL DEFAULT 'pending';
-    ```
-    If the table was created with the older `image1`/`image2`/`image3` columns, migrate it with:
-   ```sql
-   ALTER TABLE tbl_booking
-       ADD COLUMN images JSON NULL AFTER status,
-       DROP COLUMN image1,
-       DROP COLUMN image2,
-       DROP COLUMN image3;
-   ```
-6. Ensure `storage/booking/` exists and is writable (device photos are stored there, 5 MB max each). The folder is already git-ignored.
-7. Create the bug-report table:
-   ```sql
-   CREATE TABLE tbl_bug_reports (
-       id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-       username    VARCHAR(20)   NULL,
-       email       VARCHAR(255)  NULL,
-       title       VARCHAR(150)  NOT NULL,
-       description TEXT          NOT NULL,
-       images      JSON          NULL,
-       status      ENUM('new','in_progress','fixed') NOT NULL DEFAULT 'new',
-       created_at  TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP
-   );
-   ```
-   `username`/`email` hold the submitter (guests fill in the email, signed-in users are recorded by username). No IP addresses are ever stored.
-8. Ensure `storage/bugs/` exists and is writable (bug-report screenshots are stored there, 3 MB max each, up to 3 per report, only for signed-in users). The folder is already git-ignored.
-9. Create the employee and sales tables (or run the bundled `db_schema.sql`, which also seeds 6 demo employees and a customer `demo` account):
-   ```sql
-   CREATE TABLE tbl_employees (
-       employee_id        INT(6) UNSIGNED ZEROFILL AUTO_INCREMENT PRIMARY KEY,
-       password           VARCHAR(255) NOT NULL,
-       firstname          VARCHAR(50)  NOT NULL,
-       middlename         VARCHAR(50)  NULL,
-       lastname           VARCHAR(50)  NOT NULL,
-       contactnumber      VARCHAR(10)  NULL,
-       email              VARCHAR(255) NOT NULL UNIQUE,
-       verified_email     TINYINT(1)   NOT NULL DEFAULT 0,
-       role               ENUM('cashier','manager','technician','admin','developer','logistics') NOT NULL DEFAULT 'cashier',
-       is_active          TINYINT(1)   NOT NULL DEFAULT 1,
-       attendance_history JSON         NULL,
-       created_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
-   );
+   > The defaults above are XAMPP defaults (`root`, empty password). Do not ship
+   > them to production.
+5. Ensure `storage/booking/` and `storage/bugs/` exist and are writable. Device
+   photos are stored in the first (5 MB max each); bug-report screenshots go in
+   the second (3 MB max each, up to 3 per report, signed-in users only). Both
+   folders are already git-ignored.
+6. Open `http://localhost/ci3/` in your browser.
 
-   CREATE TABLE tbl_sales (
-       id                INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-       receipt_no        VARCHAR(32)      NOT NULL UNIQUE,
-       origin            ENUM('store','online') NOT NULL DEFAULT 'store',
-       sold_by           VARCHAR(255)     NULL,
-       customer_email    VARCHAR(255)     NULL,
-       customer_address  TEXT             NULL,
-       items             JSON             NOT NULL,
-       subtotal          DECIMAL(10,2)    NOT NULL DEFAULT 0.00,
-       total             DECIMAL(10,2)    NOT NULL DEFAULT 0.00,
-       status            ENUM('processing','shipped','delivered','cancelled') NOT NULL DEFAULT 'processing',
-       created_at        TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP
-   );
-   ```
-   Demo accounts — every demo password is `password123`. Employees sign in with
-   their 6-digit Employee ID (there is no employee username); the customer signs
-   in with username `demo`:
+## Schema
 
-   | Portal | Login | Role |
-   |---|---|---|
-   | Employee | `000001` | Admin |
-   | Employee | `000002` | Cashier |
-   | Employee | `000003` | Manager |
-   | Employee | `000004` | Technician |
-   | Employee | `000005` | Developer |
-   | Employee | `000006` | Logistics |
-   | Customer | `demo` | Customer (user) |
-10. Point your browser at `http://localhost/ci3/`.
+`db_schema.sql` contains the full database — six tables, plus seed data.
 
-> The DB config uses XAMPP defaults (`root`, empty password). Do not ship that to production.
+| Table | Purpose |
+| --- | --- |
+| `tbl_users` | Customer accounts. `userhistory` is a JSON array of `{action, timestamp}`. |
+| `tbl_sku` | Parts catalog. `compatibility` is a JSON array of supported devices, `technical_specs` a JSON object; `is_active` is a soft-delete flag. |
+| `tbl_employees` | Employee accounts, mirroring `tbl_users` but with `attendance_history` (JSON array of `{date, time_in, time_out}`) instead of `userhistory`. There is no `username` column — see below. |
+| `tbl_sales` | POS and online orders. `items` is a JSON array of line items. Store sales always count toward analytics; online sales only count when `status = 'delivered'`. `sold_by` holds the employee's full name. |
+| `tbl_booking` | Repair bookings (`status`: pending/approved/rescheduled/declined/finished), `images` is a JSON array of stored photo paths. |
+| `tbl_bug_reports` | Bug reports (`status`: new/in_progress/fixed), `images` is a JSON array. No IP addresses are ever stored. |
+
+Note on JSON columns: on MySQL these are native `JSON`; MariaDB implements
+`JSON` as `LONGTEXT` plus a `json_valid()` check constraint, so the dumped DDL
+may differ cosmetically from what the schema file declares.
+
+## Demo accounts
+
+Every demo password is `password123`. Employees sign in with their 6-digit
+Employee ID — there is deliberately no employee username, so the ID is the only
+login. The customer signs in with a username:
+
+| Portal | Login | Role |
+| --- | --- | --- |
+| Employee | `000001` | Admin |
+| Employee | `000002` | Cashier |
+| Employee | `000003` | Manager |
+| Employee | `000004` | Technician |
+| Employee | `000005` | Developer |
+| Employee | `000006` | Logistics |
+| Customer | `demo` | Customer (user) |
+
+## Troubleshooting
+
+- **"Access denied for user"** — check `DATABASE_USERNAME` / `DATABASE_PASSWORD`
+  in `.env` match your server.
+- **Tables not found** — the database name in `.env` must match the one you
+  imported into; re-run `mysql -u root circuit_cart < db_schema.sql`.
+- **Images fail to upload** — confirm `storage/booking/` and `storage/bugs/`
+  are writable by the web server user.
+- **Base URL wrong in links** — set `BASE_URL` in `.env` to match the folder
+  the app is served from.
