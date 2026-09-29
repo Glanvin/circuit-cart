@@ -103,7 +103,7 @@ $autoload['helper'] = array('url', 'form', 'my_helper');
 | config files.  Otherwise, leave it blank.
 |
 */
-$autoload['config'] = array('form_rules', 'error_codes');
+$autoload['config'] = array('form_rules', 'error_codes', 'roles');
 
 /*
 | -------------------------------------------------------------------
@@ -132,4 +132,4 @@ $autoload['language'] = array();
 |
 |	$autoload['model'] = array('first_model' => 'first');
 */
-$autoload['model'] = array('PartsModel', 'UserModel', 'BookingModel', 'BugReportModel');
+$autoload['model'] = array('PartsModel', 'UserModel', 'BookingModel', 'BugReportModel', 'EmployeeModel', 'SalesModel');

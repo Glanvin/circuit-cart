@@ -4,13 +4,13 @@
         <aside class="col-12 col-md-4 col-lg-3 settings-sidebar">
             <div class="nav flex-column nav-pills gap-1">
                 <a class="nav-link active" data-panel="profile" href="#profile">
-                    <i class="bi bi-person me-2"></i>Profile Settings
+                    Profile Settings
                 </a>
                 <a class="nav-link" data-panel="general" href="#general">
-                    <i class="bi bi-gear me-2"></i>General Settings
+                    General Settings
                 </a>
                 <a class="nav-link" href="#" target="_blank">
-                    <i class="bi bi-question-circle me-2"></i>Help &amp; Support
+                    Help &amp; Support
                 </a>
             </div>
         </aside>
@@ -53,11 +53,11 @@
                                     <input type="email" class="form-control <?= is_invalid('email') ?>" id="email" name="email" value="<?= html_escape($user['email'] ?? '') ?>">
                                     <?php if (!empty($user['verified_email'])): ?>
                                         <button type="button" class="btn btn-outline-success" disabled>
-                                            <i class="bi bi-check-lg me-1"></i>Verified
+                                            Verified
                                         </button>
                                     <?php else: ?>
                                         <a href="<?= site_url('auth/verify') ?>" class="btn btn-outline-warning">
-                                            <i class="bi bi-envelope-check me-1"></i>Verify Email
+                                            Verify Email
                                         </a>
                                     <?php endif; ?>
                                 </div>
@@ -122,7 +122,7 @@
                 <div class="card-header d-flex align-items-center justify-content-between">
                     <span><i class="bi bi-credit-card me-1"></i>Payment Methods</span>
                     <button type="button" class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-plus-lg me-1"></i>Add Payment Method
+                        Add Payment Method
                     </button>
                 </div>
                 <div class="card-body">

@@ -6,6 +6,8 @@
             </div>
 
             <h1 class="h3 mb-3 fw-normal">Create an account</h1>
+
+            <input type="hidden" name="return_to" value="checkout">
             
             <div class="row g-3 mb-1">
                 <div class="col-md-6">
@@ -17,7 +19,7 @@
                 </div>
                 <div class="col-md-6">
                     <div class="form-floating">
-                        <input type="email" class="form-control <?= is_invalid('email') ?>" id="email" name="email" value="<?= set_value('email') ?>" placeholder="Email">
+                        <input type="email" class="form-control <?= is_invalid('email') ?>" id="email" name="email" value="<?= set_value('email', $prefill_email ?? '') ?>" placeholder="Email">
                         <label for="email">Email*</label>
                         <?= form_error('email', '<div class="invalid-feedback">', '</div>') ?>
                     </div>
@@ -70,6 +72,11 @@
             </div>
 
             <button class="btn btn-info w-100 py-2 mt-3" type="submit" name="register" value="register">Register</button>
+
+            <?php if (!empty($prefill_address)): ?>
+                <input type="hidden" name="address" value="<?= html_escape($prefill_address) ?>">
+                <p class="mt-3 mb-0 text-center text-muted small">Your checkout delivery address will be saved to this account.</p>
+            <?php endif; ?>
 
             <p class="mt-3 mb-0 text-center">Already have an account? <a href="<?= site_url('auth/signin') ?>">Sign In</a></p>
 

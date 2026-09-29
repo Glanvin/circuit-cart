@@ -34,7 +34,7 @@
                             </div>
                         </div>
                         <div class="col-md-2 text-end">
-                            <p class="fw-bold cart-line-total">Php<?= number_format($lineTotal, 2) ?></p>
+                            <p class="fw-bold cart-line-total">₱ <?= number_format($lineTotal, 2) ?></p>
                             <button type="button" class="btn btn-sm btn-outline-danger remove-btn" data-part-id="<?= (int) $item['part_id'] ?>">
                                 <i class="bi bi-trash"></i>
                             </button>
@@ -47,7 +47,7 @@
             <!-- Continue Shopping Button -->
             <div class="text-start mb-4">
                 <a href="<?= site_url('browse') ?>" class="btn btn-outline-primary">
-                    <i class="bi bi-arrow-left me-2"></i>Continue Shopping
+                    Continue Shopping
                 </a>
             </div>
         </div>
@@ -58,20 +58,20 @@
                     <h5 class="card-title mb-4">Order Summary</h5>
                     <div class="d-flex justify-content-between mb-3">
                         <span>Subtotal</span>
-                        <span id="cart-subtotal">Php<?= number_format($subtotal, 2) ?></span>
+                        <span id="cart-subtotal">₱ <?= number_format($subtotal, 2) ?></span>
                     </div>
                     <div class="d-flex justify-content-between mb-3">
                         <span>Shipping</span>
-                        <span id="cart-shipping">Php10.00</span>
+                        <span id="cart-shipping">₱ 10.00</span>
                     </div>
                     <div class="d-flex justify-content-between mb-3">
                         <span>Tax</span>
-                        <span id="cart-tax">Php20.00</span>
+                        <span id="cart-tax">₱ 20.00</span>
                     </div>
                     <hr>
                     <div class="d-flex justify-content-between mb-4">
                         <strong>Total</strong>
-                        <strong id="cart-total">Php<?= number_format($subtotal + 30.00, 2) ?></strong>
+                        <strong id="cart-total">₱ <?= number_format($subtotal + 30.00, 2) ?></strong>
                     </div>
                     <a href="<?= site_url('checkout') ?>" id="checkout-btn" class="btn btn-primary w-100">Proceed to Checkout</a>
                 </div>
@@ -93,7 +93,7 @@
         <i class="bi bi-cart fs-1 mb-3 d-block"></i>
         <h5>Your cart is empty.</h5>
         <a href="<?= site_url('browse') ?>" class="btn btn-outline-primary mt-3">
-            <i class="bi bi-arrow-left me-2"></i>Browse Parts
+            Browse Parts
         </a>
     </div>
     <?php endif; ?>

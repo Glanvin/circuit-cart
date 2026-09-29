@@ -5,7 +5,7 @@ class EmployeeBookingController extends MY_Controller {
 
 	protected string $navbar = 'templates/navbar_employees';
 
-	protected array $allowedRoles = ['admin', 'staff'];
+	protected array $allowedRoles = ['admin', 'technician'];
 
 	//Terminal states. No further action may be taken on these bookings.
 	private const CLOSED = ['declined', 'finished'];
@@ -18,11 +18,13 @@ class EmployeeBookingController extends MY_Controller {
 	{
 		$bookings = [];
 		$status = strtolower((string) $this->input->get('status', true));
+		$status = in_array($status, ['pending', 'approved', 'rescheduled', 'declined', 'finished']) ? $status : '';
+		$q = trim((string) $this->input->get('q', true));
+		$sort = strtolower((string) $this->input->get('sort', true));
+		$sort = in_array($sort, ['newest', 'oldest'], true) ? $sort : 'newest';
 
 		try {
-			$bookings = in_array($status, ['pending', 'approved', 'rescheduled', 'declined', 'finished'])
-				? $this->BookingModel->getAllBookings($status)
-				: $this->BookingModel->getOpenBookings();
+			$bookings = $this->BookingModel->getFilteredBookings($status, $q, $sort);
 		} catch (AppException $e) {
 			$this->toastify->error($e->toToast());
 		}
@@ -30,7 +32,9 @@ class EmployeeBookingController extends MY_Controller {
 		$this->render('pages/employees/bookings', [
 			'title' => 'Bookings',
 			'bookings' => $bookings,
-			'status' => in_array($status, ['pending', 'approved', 'rescheduled', 'declined', 'finished']) ? $status : '',
+			'status' => $status,
+			'q' => $q,
+			'sort' => $sort,
 		]);
 	}
 

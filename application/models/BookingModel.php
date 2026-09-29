@@ -40,6 +40,34 @@ class BookingModel extends CI_Model {
         return $query->result_array();
     }
 
+    /*
+     * Returns bookings filtered by status (empty = open bookings), a case-
+     * insensitive search over username/device/issue, and a preferred_date sort.
+     */
+    public function getFilteredBookings($status = null, $q = '', $sort = 'newest') {
+        if (!empty($status)) {
+            $this->db->where('status', $status);
+        } else {
+            $this->db->where_in('status', ['pending', 'approved', 'rescheduled']);
+        }
+
+        if ($q !== '') {
+            $this->db->group_start();
+            $this->db->like('username', $q);
+            $this->db->or_like('device', $q);
+            $this->db->or_like('issue', $q);
+            $this->db->group_end();
+        }
+
+        $this->db->order_by('preferred_date', $sort === 'oldest' ? 'ASC' : 'DESC');
+        $this->db->order_by('id', 'DESC');
+        $query = $this->db->get('tbl_booking');
+        if (!$query) {
+            throw new AppException('Q04');
+        }
+        return $query->result_array();
+    }
+
     //Returns the bookings submitted by the given user.
     public function getBookingsByUsername($username) {
         if (empty($username)) {

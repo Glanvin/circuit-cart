@@ -16,7 +16,7 @@ function initCartSummary() {
   const BASE_URL = document.body.dataset.baseUrl || '';
 
   function format(value) {
-    return 'Php' + value.toFixed(2);
+    return '₱ ' + value.toFixed(2);
   }
 
   function recalc() {

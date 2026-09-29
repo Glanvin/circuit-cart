@@ -3,7 +3,8 @@
         <p class="text-muted mb-0">
             Repair appointment bookings submitted by customers. Use reschedule when the requested slot is not available.
         </p>
-        <form method="get" action="<?= site_url('storage/booking') ?>" class="d-flex align-items-center gap-2">
+        <form method="get" action="<?= site_url('storage/booking') ?>" class="d-flex flex-wrap align-items-center gap-2">
+            <input type="search" class="form-control form-control-sm" style="width: 210px;" name="q" value="<?= html_escape($q ?? '') ?>" placeholder="Search name, device, issue..." autocomplete="off">
             <label class="form-label mb-0 text-nowrap" for="statusFilter">Show</label>
             <select class="form-select form-select-sm" id="statusFilter" name="status" onchange="this.form.submit()">
                 <option value="" <?= ($status ?? '') === '' ? 'selected' : '' ?>>Open Bookings</option>
@@ -13,6 +14,15 @@
                 <option value="declined" <?= ($status ?? '') === 'declined' ? 'selected' : '' ?>>Declined</option>
                 <option value="finished" <?= ($status ?? '') === 'finished' ? 'selected' : '' ?>>Finished</option>
             </select>
+            <label class="form-label mb-0 text-nowrap" for="sortFilter">Sort</label>
+            <select class="form-select form-select-sm" id="sortFilter" name="sort" onchange="this.form.submit()">
+                <option value="newest" <?= ($sort ?? 'newest') === 'newest' ? 'selected' : '' ?>>Newest first</option>
+                <option value="oldest" <?= ($sort ?? 'newest') === 'oldest' ? 'selected' : '' ?>>Oldest first</option>
+            </select>
+            <button type="submit" class="btn btn-sm btn-outline-primary">Filter</button>
+            <?php if (($q ?? '') !== '' || ($status ?? '') !== '' || ($sort ?? 'newest') !== 'newest'): ?>
+                <a href="<?= site_url('storage/booking') ?>" class="btn btn-sm btn-outline-secondary">Reset</a>
+            <?php endif; ?>
         </form>
     </div>
 

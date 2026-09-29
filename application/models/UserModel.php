@@ -77,4 +77,56 @@ class UserModel extends CI_Model {
         $this->db->where('id', $id);
         return $this->db->update('tbl_users', $data);
     }
+
+    //Physically deletes a user record by ID.
+    public function deleteUser($id) {
+        if(empty($id)) {
+            throw new AppException('D01');
+        }
+
+        $this->db->where('id', $id);
+        return $this->db->delete('tbl_users');
+    }
+
+    public function getAllUsers() {
+        $this->db->order_by('id', 'DESC');
+        $query = $this->db->get('tbl_users');
+
+        if(!$query) {
+            throw new AppException('Q03');
+        }
+
+        return $query->result_array();
+    }
+
+    public function countUsers() {
+        $this->db->select('COUNT(*) AS total');
+        $query = $this->db->get('tbl_users');
+
+        if(!$query) {
+            throw new AppException('Q03');
+        }
+
+        return (int) $query->row()->total;
+    }
+
+    //Users registered per day, for account_created dates on or after $since.
+    public function getUserRegistrationsSince($since) {
+        $this->db->select('DATE(account_created) AS day, COUNT(*) AS total');
+        $this->db->where('account_created >=', $since);
+        $this->db->group_by('day');
+        $query = $this->db->get('tbl_users');
+
+        if(!$query) {
+            throw new AppException('Q03');
+        }
+
+        $rows = [];
+
+        foreach ($query->result_array() as $row) {
+            $rows[$row['day']] = (int) $row['total'];
+        }
+
+        return $rows;
+    }
 }

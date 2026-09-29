@@ -9,9 +9,16 @@ Built on **CodeIgniter 3** with **Bootstrap 5**, **MySQL**, and a custom **Toast
 - **Customer side**
   - Home page with repair booking pitch and catalog links
   - Browse page: product card grid with client-side filtering by device type and category
+  - Online checkout: guests supply a delivery email + address, or create an account to carry the address over
 - **Employee side**
-  - Stock management table (`/inventory/stocks`): SKU, cost/retail prices, stock quantities
-  - Employee dashboard & user/employee management *(work in progress)*
+  - Separate employee sign-in using a 6-digit employee ID + password
+  - Role-based portal: cashier (POS), manager (analytics & order fulfilment), technician/developer (bookings / bug reports), logistics (inventory), admin (everything)
+  - POS cash register: record store sales, automatic stock decrement, exact-change computation, receipt numbers
+  - Analytics with locally-bundled Chart.js: store vs. delivered-online sales, user registrations, attendance, low-stock — export each chart as PNG/PDF (`jsPDF` via CDN)
+  - Online order fulfilment: move orders from processing → shipped → delivered / cancelled; only `delivered` online sales count toward analytics
+  - Attendance: clock in/out with per-employee history stored in `tbl_employees.attendance_history`
+  - Admin hub for managing employees (create, role, password reset, activate/deactivate) and customer users (role promotion to admin)
+  - Inventory management: SKU CRUD, stock adjustments, soft-removal (`is_active`)
 
 ## Requirements
 
@@ -87,7 +94,39 @@ Built on **CodeIgniter 3** with **Bootstrap 5**, **MySQL**, and a custom **Toast
    ```
    `username`/`email` hold the submitter (guests fill in the email, signed-in users are recorded by username). No IP addresses are ever stored.
 8. Ensure `storage/bugs/` exists and is writable (bug-report screenshots are stored there, 3 MB max each, up to 3 per report, only for signed-in users). The folder is already git-ignored.
-9. Point your browser at `http://localhost/ci3/`.
+9. Create the employee and sales tables (or run the bundled `db_schema.sql`, which also seeds 7 demo employees and ~21 sales):
+   ```sql
+   CREATE TABLE tbl_employees (
+       employee_id        INT(6) UNSIGNED ZEROFILL AUTO_INCREMENT PRIMARY KEY,
+       username           VARCHAR(20)  NOT NULL UNIQUE,
+       password           VARCHAR(255) NOT NULL,
+       firstname          VARCHAR(50)  NOT NULL,
+       middlename         VARCHAR(50)  NULL,
+       lastname           VARCHAR(50)  NOT NULL,
+       contactnumber      VARCHAR(10)  NULL,
+       email              VARCHAR(255) NOT NULL UNIQUE,
+       role               ENUM('cashier','manager','technician','admin','developer','logistics') NOT NULL DEFAULT 'cashier',
+       is_active          TINYINT(1)   NOT NULL DEFAULT 1,
+       attendance_history JSON         NULL,
+       created_at         TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+   );
+
+   CREATE TABLE tbl_sales (
+       id                INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+       receipt_no        VARCHAR(32)      NOT NULL UNIQUE,
+       origin            ENUM('store','online') NOT NULL DEFAULT 'store',
+       sold_by           VARCHAR(255)     NULL,
+       customer_email    VARCHAR(255)     NULL,
+       customer_address  TEXT             NULL,
+       items             JSON             NOT NULL,
+       subtotal          DECIMAL(10,2)    NOT NULL DEFAULT 0.00,
+       total             DECIMAL(10,2)    NOT NULL DEFAULT 0.00,
+       status            ENUM('processing','shipped','delivered','cancelled') NOT NULL DEFAULT 'processing',
+       created_at        TIMESTAMP        NOT NULL DEFAULT CURRENT_TIMESTAMP
+   );
+   ```
+   Demo employees all use password `password123` — admin=`000001`, cashier=`000002`, manager=`000003`, technician=`000004`, developer=`000005`, logistics=`000006`, `000007` is deactivated.
+10. Point your browser at `http://localhost/ci3/`.
 
 > The DB config uses XAMPP defaults (`root`, empty password). Do not ship that to production.
 
@@ -106,10 +145,21 @@ Built on **CodeIgniter 3** with **Bootstrap 5**, **MySQL**, and a custom **Toast
 | `/storage/booking/decline/{id}` | `EmployeeBookingController::decline()` |
 | `/storage/bugs` | `EmployeeBugController` |
 | `/storage/bugs/status/{id}/{status}` | `EmployeeBugController::status()` |
-| `/employee/dashboard` | `DashboardController` |
-| `/employee/manage/users` | `ManagementController` |
-| `/inventory/stocks` | `StockController` |
+| `/employee/dashboard` | `DashboardController` (admin) |
+| `/employee/analytics` | `AnalyticsController` (manager/admin) |
+| `/employee/orders` | `AnalyticsController::orders()` (manager/admin) |
+| `/employee/orders/status/{id}/{status}` | `AnalyticsController::orderStatus()` |
+| `/employee/attendance` | `AttendanceController` (all employees) |
+| `/employee/attendance/in\|out` | `AttendanceController::timeIn()\|timeOut()` |
+| `/employee/manage/users` | `ManagementController::users()` (admin) |
+| `/employee/manage/employees` | `ManagementController::employees()` (admin) |
+| `/employee` / `/employee/signin` / `/employee/signout` | `EmployeeAuthController` |
+| `/pos` / `/pos/complete` | `PosController` (cashier/admin) |
+| `/inventory/stocks` | `StockController` (admin/manager/logistics) |
 | `/inventory/stocks/new` | `StockController::newSKU()` |
+| `/inventory/stocks/edit/{id}` | `StockController::edit()` |
+| `/inventory/stocks/add/{id}` | `StockController::addStock()` |
+| `/inventory/stocks/remove/{id}` | `StockController::remove()` |
 
 ## Project structure
 

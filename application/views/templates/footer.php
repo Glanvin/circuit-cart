@@ -36,6 +36,7 @@
                 <li class="nav-item mb-2"><a href="<?= site_url('home') ?>" class="nav-link p-0 text-body-secondary">Home</a></li>
                 <li class="nav-item mb-2"><a href="<?= site_url('browse') ?>" class="nav-link p-0 text-body-secondary">Browse</a></li>
                 <li class="nav-item mb-2"><a href="<?= site_url('cart') ?>" class="nav-link p-0 text-body-secondary">Cart</a></li>
+                <li class="nav-item mb-2"><a href="<?= site_url('employee') ?>" class="nav-link p-0 text-body-secondary">Employee Portal</a></li>
             </ul>
         </div>
 

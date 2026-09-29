@@ -19,7 +19,7 @@ $config['upload'] = array(
 	),
 	'bugs' => array(
 		'upload_path'   => FCPATH . 'storage/bugs/',
-		'allowed_types' => 'jpg|jpeg|png|webp|gif',
+		'allowed_types' => 'jpg|jpeg|png|gif',
 		'max_size'      => 3072, // 3 MB per image
 		'max_width'     => 0,
 		'max_height'    => 0,

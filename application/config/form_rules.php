@@ -235,3 +235,192 @@ $config['bug_report'] = array(
 		)
 	),
 );
+
+$config['employee_signin'] = array(
+	array(
+		'field' => 'employee_id',
+		'label' => 'Employee ID',
+		'rules' => 'required|exact_length[6]|numeric',
+		'errors' => array(
+			'required' => '%s cannot be blank',
+			'exact_length' => '%s must be a 6 digit number',
+			'numeric' => '%s must contain numbers only',
+		)
+	),
+	array(
+		'field' => 'password',
+		'label' => 'Password',
+		'rules' => 'required|min_length[6]',
+		'errors' => array(
+			'required' => '%s cannot be blank',
+		)
+	),
+);
+
+$config['employee_create'] = array(
+	array(
+		'field' => 'username',
+		'label' => 'Username',
+		'rules' => 'required|min_length[3]|max_length[20]|regex_match[/^[a-zA-Z0-9_@.\-]+$/]|is_unique[tbl_employees.username]',
+		'errors' => array(
+			'required' => '%s cannot be blank',
+			'is_unique' => '%s has already been taken'
+		)
+	),
+	array(
+		'field' => 'email',
+		'label' => 'Email',
+		'rules' => 'required|valid_email|is_unique[tbl_employees.email]',
+		'errors' => array(
+			'required' => '%s cannot be blank',
+			'is_unique' => '%s is already in use'
+		)
+	),
+	array(
+		'field' => 'firstname',
+		'label' => 'First Name',
+		'rules' => 'required|regex_match[/^[a-zA-Z -]+$/]',
+	),
+	array(
+		'field' => 'middlename',
+		'label' => 'Middle Name',
+		'rules' => 'regex_match[/^[a-zA-Z -]+$/]',
+	),
+	array(
+		'field' => 'lastname',
+		'label' => 'Last Name',
+		'rules' => 'required|regex_match[/^[a-zA-Z -]+$/]',
+	),
+	array(
+		'field' => 'contactnumber',
+		'label' => 'Phone Number',
+		'rules' => 'required|exact_length[10]|numeric',
+	),
+	array(
+		'field' => 'password',
+		'label' => 'Password',
+		'rules' => 'required|min_length[6]',
+	),
+	array(
+		'field' => 'role',
+		'label' => 'Role',
+		'rules' => 'required|in_list[cashier,manager,technician,admin,developer,logistics]',
+	),
+);
+
+$config['checkout_guest'] = array(
+	array(
+		'field' => 'guest_email',
+		'label' => 'Email',
+		'rules' => 'required|valid_email|max_length[255]',
+		'errors' => array(
+			'required' => '%s is required for delivery confirmation',
+		)
+	),
+	array(
+		'field' => 'guest_address',
+		'label' => 'Delivery Address',
+		'rules' => 'required|max_length[255]',
+		'errors' => array(
+			'required' => '%s is required for delivery',
+		)
+	),
+);
+
+$config['sku_create'] = array(
+	array(
+		'field' => 'sku',
+		'label' => 'SKU',
+		'rules' => 'required|max_length[64]|regex_match[/^[A-Za-z0-9\-_]+$/]|is_unique[tbl_sku.sku]',
+		'errors' => array(
+			'required' => '%s cannot be blank',
+			'is_unique' => '%s already exists'
+		)
+	),
+	array(
+		'field' => 'part_name',
+		'label' => 'Part Name',
+		'rules' => 'required|max_length[255]',
+	),
+	array(
+		'field' => 'category',
+		'label' => 'Category',
+		'rules' => 'required|max_length[50]',
+	),
+	array(
+		'field' => 'device_type',
+		'label' => 'Device Type',
+		'rules' => 'required|max_length[50]',
+	),
+	array(
+		'field' => 'cost_price',
+		'label' => 'Cost Price',
+		'rules' => 'required|numeric',
+	),
+	array(
+		'field' => 'selling_price',
+		'label' => 'Selling Price',
+		'rules' => 'required|numeric',
+	),
+	array(
+		'field' => 'stock_quantity',
+		'label' => 'Stock Quantity',
+		'rules' => 'required|integer|greater_than_equal_to[0]',
+	),
+	array(
+		'field' => 'compatibility',
+		'label' => 'Compatibility',
+		'rules' => 'required',
+	),
+	array(
+		'field' => 'technical_specs',
+		'label' => 'Technical Specs',
+		'rules' => 'required',
+	),
+);
+
+$config['sku_edit'] = array(
+	array(
+		'field' => 'part_name',
+		'label' => 'Part Name',
+		'rules' => 'required|max_length[255]',
+	),
+	array(
+		'field' => 'category',
+		'label' => 'Category',
+		'rules' => 'required|max_length[50]',
+	),
+	array(
+		'field' => 'device_type',
+		'label' => 'Device Type',
+		'rules' => 'required|max_length[50]',
+	),
+	array(
+		'field' => 'cost_price',
+		'label' => 'Cost Price',
+		'rules' => 'required|numeric',
+	),
+	array(
+		'field' => 'selling_price',
+		'label' => 'Selling Price',
+		'rules' => 'required|numeric',
+	),
+	array(
+		'field' => 'compatibility',
+		'label' => 'Compatibility',
+		'rules' => 'required',
+	),
+	array(
+		'field' => 'technical_specs',
+		'label' => 'Technical Specs',
+		'rules' => 'required',
+	),
+);
+
+$config['add_stock'] = array(
+	array(
+		'field' => 'stock_quantity',
+		'label' => 'Stock Quantity',
+		'rules' => 'required|integer|greater_than_equal_to[0]',
+	),
+);

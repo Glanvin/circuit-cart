@@ -5,7 +5,7 @@ class EmployeeBugController extends MY_Controller {
 
 	protected string $navbar = 'templates/navbar_employees';
 
-	protected array $allowedRoles = ['admin', 'staff'];
+	protected array $allowedRoles = ['admin', 'developer'];
 
 	private const STATUSES = ['new', 'in_progress', 'fixed'];
 

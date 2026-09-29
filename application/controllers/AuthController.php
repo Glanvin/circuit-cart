@@ -7,6 +7,12 @@ class AuthController extends CI_Controller {
     public function index()
     {
         if ($this->session->userdata('username')) {
+            if ($this->session->userdata('employee_id')) {
+                $homes = $this->config->item('role_home');
+                $role = $this->session->userdata('role');
+                redirect(is_array($homes) && isset($homes[$role]) ? $homes[$role] : 'employee/dashboard');
+            }
+
             redirect($this->session->userdata('role') === 'admin' ? 'employee/dashboard' : 'home');
         }
 
@@ -16,7 +22,7 @@ class AuthController extends CI_Controller {
     //Signs the user out and clears the session.
     public function signout()
     {
-        $this->session->unset_userdata(array('username', 'role', 'email'));
+        $this->session->unset_userdata(array('username', 'role', 'email', 'employee_id'));
         $this->toastify->success('You have been signed out.');
         redirect('auth/signin');
     }
@@ -72,13 +78,19 @@ class AuthController extends CI_Controller {
      * Shows the registration form and creates a new account, emailing a welcome
      * message to the new user before redirecting to sign-in.
      */
-    public function signup()
+public function signup()
     {
         $data = [
             'title' => 'Sign Up',
             'enable_footer' => false,
         ];
-        if($this->input->post('register')) {
+
+        //Prefills come from the checkout "create an account" flow so the
+        //delivery email and address survive into the new account.
+        $prefillEmail = (string) $this->input->get('email', true);
+        $prefillAddress = (string) $this->input->get('address', true);
+
+        if ($this->input->post('register')) {
 
             $rules = $this->config->item('user_signup');
             $this->form_validation->set_rules($rules);
@@ -98,20 +110,28 @@ class AuthController extends CI_Controller {
                         'email' => strtolower($this->input->post('email', true))
                     ];
 
+                    //Carry the checkout delivery address into the account.
+                    $address = (string) $this->input->post('address', true);
+                    if ($address !== '') {
+                        $user['address'] = $address;
+                    }
+
                     $response = $this->UserModel->registerUser($user);
                     if($response) {
                         deliver_email(
                             'emails/welcome_email',
                             [
-                                'subject' => 'Welcome to Circuit Cart',
+                                'subject'  => 'Welcome to Circuit Cart',
                                 'greeting' => "Dear " . ucfirst((string) $this->input->post('firstname', TRUE)) . ",",
-                                'message' => 'Welcome to Circuit Cart',
+                                'message'  => 'Welcome to Circuit Cart',
                             ],
                             (string) $this->input->post('email', TRUE),
                             'Welcome to Circuit Cart'
                         );
                         $this->toastify->success("Registration successul");
-                        redirect('auth/signin');
+
+                        //Coming from checkout: continue straight through.
+                        redirect($this->input->post('return_to') ? 'checkout' : 'auth/signin');
                     }else {
                         $this->toastify->error("Registration unsuccessful");
                         redirect('auth/signup');
@@ -133,6 +153,9 @@ class AuthController extends CI_Controller {
                 return;
             }
         }
+
+        $data['prefill_email'] = $prefillEmail;
+        $data['prefill_address'] = $prefillAddress;
 
         $this->load->view('templates/header', $data);
         $this->load->view('auth/sign_up', $data);
