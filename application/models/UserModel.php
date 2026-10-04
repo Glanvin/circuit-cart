@@ -129,4 +129,63 @@ class UserModel extends CI_Model {
 
         return $rows;
     }
+
+    //Existing usernames from $usernames, used to spot collisions on a
+    //spreadsheet import. Chunked so a large sheet cannot blow past the
+    //placeholder limit on a single IN (...) list. Comparison is
+    //case-insensitive to match the utf8_general_ci column collation.
+    public function getExistingUsernames(array $usernames): array {
+        $found = [];
+
+        foreach($this->chunks($usernames) as $chunk) {
+            $this->db->select('username');
+            $this->db->where_in('username', $chunk);
+            $query = $this->db->get('tbl_users');
+
+            if(!$query) {
+                throw new AppException('Q03');
+            }
+
+            foreach($query->result_array() as $row) {
+                $found[] = $row['username'];
+            }
+        }
+
+        return $found;
+    }
+
+    //Existing emails from $emails. Mirrors getExistingUsernames.
+    public function getExistingEmails(array $emails): array {
+        $found = [];
+
+        foreach($this->chunks($emails) as $chunk) {
+            $this->db->select('email');
+            $this->db->where_in('email', $chunk);
+            $query = $this->db->get('tbl_users');
+
+            if(!$query) {
+                throw new AppException('Q03');
+            }
+
+            foreach($query->result_array() as $row) {
+                $found[] = $row['email'];
+            }
+        }
+
+        return $found;
+    }
+
+    //Splits a list into IN (...) sized batches. Returns no batches at all for
+    //an empty input, which keeps the callers free of empty-query guards.
+    private function chunks(array $values, int $size = 500): array {
+        $values = array_values(array_filter($values, static function($value) {
+            return $value !== '';
+        }));
+
+        if(empty($values)) {
+            return [];
+        }
+
+        return array_chunk($values, $size);
+    }
 }

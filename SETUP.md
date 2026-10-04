@@ -38,10 +38,12 @@ Installation walkthrough for **Circuit Cart** (CodeIgniter 3 + MySQL). For a fea
    ```
    > The defaults above are XAMPP defaults (`root`, empty password). Do not ship
    > them to production.
-5. Ensure `storage/booking/` and `storage/bugs/` exist and are writable. Device
-   photos are stored in the first (5 MB max each); bug-report screenshots go in
-   the second (3 MB max each, up to 3 per report, signed-in users only). Both
-   folders are already git-ignored.
+5. Ensure `storage/booking/`, `storage/bugs/` and `storage/tmp/` exist and are
+   writable. Device photos are stored in the first (5 MB max each); bug-report
+   screenshots go in the second (3 MB max each, up to 3 per report, signed-in
+   users only); the third holds spreadsheets uploaded through the admin user
+   import and is cleared after every import. All three folders are already
+   git-ignored.
 6. Open `http://localhost/ci3/` in your browser.
 
 ## Schema
@@ -85,5 +87,9 @@ login. The customer signs in with a username:
   imported into; re-run `mysql -u root circuit_cart < db_schema.sql`.
 - **Images fail to upload** — confirm `storage/booking/` and `storage/bugs/`
   are writable by the web server user.
+- **User import fails** — confirm `storage/tmp/` is writable. Only `.xlsx`,
+  `.xls` and `.csv` are accepted (macro-enabled `.xlsm` is rejected), up to
+  5 MB and 2000 data rows. Download the sample file from the import modal for
+  the exact column layout.
 - **Base URL wrong in links** — set `BASE_URL` in `.env` to match the folder
   the app is served from.

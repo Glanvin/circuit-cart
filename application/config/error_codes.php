@@ -24,6 +24,13 @@ $config['error_codes'] = array(
 	'Q08' => 'Failed to save the sale.',
 	'Q09' => 'Failed to get sales.',
 
+	//U = User spreadsheet import
+	'U01' => 'The spreadsheet could not be read. Download the sample file and check its contents.',
+	'U02' => 'The spreadsheet is missing required columns: {columns}',
+	'U03' => 'The spreadsheet has no user rows to import.',
+	'U04' => 'The spreadsheet has more than {max} rows. Split it into smaller files.',
+	'U05' => 'No users could be imported. Fix the rows listed below and upload the file again.',
+
 	//D = Data, validation
 	'D01' => 'Data is empty',
 	'D02' => 'Insufficient stock for {item}.',

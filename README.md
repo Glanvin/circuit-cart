@@ -24,7 +24,7 @@ Built on **CodeIgniter 3** with **Bootstrap 5**, **MySQL**, and a custom **Toast
   - Analytics with locally-bundled Chart.js: store vs. delivered-online sales, user registrations, attendance, low-stock — export each chart as PNG/PDF (`jsPDF` via CDN); the range selector redraws charts, KPIs and tables in place via AJAX (`/employee/analytics/data`)
   - Online order fulfilment: move orders from processing → shipped → delivered / cancelled; only `delivered` online sales count toward analytics
   - Attendance: clock in/out with per-employee history stored in `tbl_employees.attendance_history`
-  - Admin hub for managing employees (create, role, password reset, activate/deactivate) and customer users (role promotion to admin)
+  - Admin hub for managing employees (create, role, password reset, activate/deactivate) and customer users (role promotion to admin), including a bulk user import from `.xlsx`/`.xls`/`.csv` (PhpSpreadsheet) that validates row by row, skips existing usernames and emails, and reports per-row reasons
   - Inventory management: SKU CRUD, stock adjustments, soft-removal (`is_active`)
 
 ## Routes

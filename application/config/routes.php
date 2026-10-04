@@ -85,6 +85,8 @@ $route['employee/attendance/view/(:num)'] = 'AttendanceController/index/$1';
 $route['employee/attendance/in'] = 'AttendanceController/timeIn';
 $route['employee/attendance/out'] = 'AttendanceController/timeOut';
 $route['employee/manage/users'] = 'ManagementController/users';
+$route['employee/manage/users/import'] = 'ManagementController/importUsers';
+$route['employee/manage/users/sample'] = 'ManagementController/userTemplate';
 $route['employee/manage/employees'] = 'ManagementController/employees';
 $route['employee/manage/employees/new'] = 'ManagementController/newEmployee';
 
