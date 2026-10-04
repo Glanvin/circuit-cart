@@ -62,7 +62,7 @@
 	define('ENVIRONMENT', app_env('CI_ENV', 'development') ?: 'development');
 
 	define('SITE_NAME', app_env('SITE_NAME', 'Circuit Cart'));
-	define('APP_VERSION', app_env('APP_VERSION', '0.0.2'));
+	define('APP_VERSION', app_env('APP_VERSION', '0.1.0'));
 	define('DATABASE_NAME', app_env('DATABASE_NAME'));
 	define('DATABASE_HOSTNAME', app_env('DATABASE_HOSTNAME', 'localhost'));
 	define('DATABASE_PORT', app_env('DATABASE_PORT', '3306'));
