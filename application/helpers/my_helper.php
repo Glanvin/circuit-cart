@@ -1,12 +1,16 @@
 <?php
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-//Checks whether the current user has a valid session.
-function check_session()
+//Checks whether the current user has a valid session. The employee namespace
+//is used by the employee portal (employee_* keys); everything else uses the
+//customer namespace (username/role/email).
+function check_session(string $namespace = 'customer')
 {
     $CI =& get_instance();
 
-    if (empty($CI->session->userdata('username'))) {
+    $key = $namespace === 'employee' ? 'employee_id' : 'username';
+
+    if (empty($CI->session->userdata($key))) {
         throw new AppException('S01');
     }
 }
@@ -41,9 +45,10 @@ function mask_email($email)
     return $local[0] . str_repeat('*', strlen($local) - 1) . '@' . $domain;
 }
 
-//Renders an email template and dispatches it through the CI Email library.
-//Returns true when the delivery pipeline accepted the message, false when the
-//recipient is missing or SMTP failed.
+/*
+ * Renders an email template and dispatches it through the CI Email library,
+ * returning whether the delivery pipeline accepted the message.
+ */
 function deliver_email(
 	string $view,
 	array $data,
@@ -88,9 +93,61 @@ function deliver_email(
     return $CI->email->send();
 }
 
-//Generates a 6-digit verification code valid for 2 minutes, emails the
-//plaintext code to the given address first, then stores only its hash plus the
-//expiry in the session. Returns false when the email could not be delivered.
+//Formats a booking row into human-readable label/value pairs for email bodies.
+function booking_details(array $booking): array
+{
+    return [
+        'Device' => $booking['device'] ?? '',
+        'Issue Description' => $booking['issue'] ?? '',
+        'Preferred Date' => date('F j, Y', strtotime((string) ($booking['preferred_date'] ?? ''))),
+        'Preferred Time' => date('h:i A', strtotime((string) ($booking['preferred_time'] ?? ''))),
+        'Status' => ucfirst((string) ($booking['status'] ?? '')),
+    ];
+}
+
+//Renders the booking status email template and dispatches it to the customer.
+function send_booking_email(string $to, string $subject, string $greeting, string $message, array $details): bool
+{
+    return deliver_email(
+        'emails/booking_email',
+        [
+            'subject' => $subject,
+            'greeting' => $greeting,
+            'message' => $message,
+            'details' => $details,
+        ],
+        $to,
+        $subject
+    );
+}
+
+//Sends an appointment status notification to the booking's owner, swallowing
+//email failures so the booking workflow never breaks.
+function send_booking_notification(string $username, string $subject, string $message, array $details): void
+{
+    $CI =& get_instance();
+
+    try {
+        $user = $CI->UserModel->findUserByUsername($username);
+
+        if (!empty($user['email'])) {
+            send_booking_email(
+                $user['email'],
+                $subject,
+                'Hello ' . ucfirst((string) $username) . ',',
+                $message,
+                $details
+            );
+        }
+    } catch (Exception $e) {
+        // Ignore: the booking status change itself should still succeed.
+    }
+}
+
+/*
+ * Generates a 6-digit verification code, emails the plaintext version, then
+ * stores only its hash plus expiry in the session. Returns false on failure.
+ */
 function store_otp(string $email): bool
 {
     $CI =& get_instance();
@@ -121,9 +178,8 @@ function store_otp(string $email): bool
     return true;
 }
 
-//Compares a submitted code against the stored hashed OTP. Returns true when the
-//code matches and has not expired, false otherwise. Clears the stored OTP once
-//it has been consumed or is no longer valid.
+//Compares a submitted code against the stored hash, clearing the OTP once it
+//matches or has expired.
 function verify_otp(string $code): bool
 {
     $CI =& get_instance();
@@ -148,42 +204,13 @@ function verify_otp(string $code): bool
     return $valid;
 }
 
-//Returns the current cart lines held in the session. Seeds the cart from the
-//first two active DB parts the first time it is requested so the navbar badge
-//and cart page can share one source. Returns an empty array when the cart has
-//been emptied (line items were removed) or the database is unavailable.
-//Each line: part_id, name, category, price, quantity.
+//Returns the cart lines held in the session, or an empty array when the cart
+//has no items.
 function cart_items(): array
 {
     $CI =& get_instance();
 
     $cart = $CI->session->userdata('cart_items');
 
-    if ($cart !== NULL) {
-        return is_array($cart) ? $cart : [];
-    }
-
-    $cart = [];
-
-    try {
-        $CI->load->model('PartsModel');
-
-        $parts = array_slice($CI->PartsModel->getAllParts(), 0, 2);
-
-        foreach ($parts as $i => $part) {
-            $cart[] = [
-                'part_id' => $part['part_id'],
-                'name' => $part['part_name'],
-                'category' => $part['category'],
-                'price' => $part['selling_price'],
-                'quantity' => $i === 0 ? 1 : 2,
-            ];
-        }
-    } catch (Exception $e) {
-        $cart = [];
-    }
-
-    $CI->session->set_userdata('cart_items', $cart);
-
-    return $cart;
+    return is_array($cart) ? $cart : [];
 }

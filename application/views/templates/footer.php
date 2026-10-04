@@ -1,4 +1,15 @@
 <?php if (!empty($enable_footer)):?>
+<?php
+$portal = (string) ($portal ?? '');
+if ($portal === 'employee') {
+    $signOutUrl = site_url('employee/signout');
+} elseif ($portal === 'customer') {
+    $signOutUrl = site_url('auth/signout');
+} else {
+    $signOutUrl = $this->session->userdata('employee_id')
+        ? site_url('employee/signout') : site_url('auth/signout');
+}
+?>
 <div class="container mt-auto">
     <footer class="row row-cols-1 row-cols-sm-2 row-cols-md-5 py-5 my-5 border-top">
         <div class="col mb-3">
@@ -14,16 +25,17 @@
             <h5>Support</h5>
             <ul class="nav flex-column">
                 <li class="nav-item mb-2 text-body-secondary">
-                    <i class="bi bi-headset me-1"></i>
-                    Support
-                </li>
-                <li class="nav-item mb-2 text-body-secondary">
                     <i class="bi bi-geo-alt me-1"></i>
                     <span>019 Corrales Ext, Cagayan de Oro City, Philippines</span>
                 </li>
                 <li class="nav-item mb-2">
                     <a href="mailto:support@circuit-cart.dev" class="nav-link p-0 text-body-secondary">
                         <i class="bi bi-envelope me-1"></i>support@circuit-cart.dev
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a href="<?= site_url('bugs') ?>" class="nav-link p-0 text-body-secondary">
+                        <i class="bi bi-bug me-1"></i>Report a Bug
                     </a>
                 </li>
             </ul>
@@ -35,6 +47,7 @@
                 <li class="nav-item mb-2"><a href="<?= site_url('home') ?>" class="nav-link p-0 text-body-secondary">Home</a></li>
                 <li class="nav-item mb-2"><a href="<?= site_url('browse') ?>" class="nav-link p-0 text-body-secondary">Browse</a></li>
                 <li class="nav-item mb-2"><a href="<?= site_url('cart') ?>" class="nav-link p-0 text-body-secondary">Cart</a></li>
+                <li class="nav-item mb-2"><a href="<?= site_url('employee') ?>" class="nav-link p-0 text-body-secondary">Employee Portal</a></li>
             </ul>
         </div>
 
@@ -78,13 +91,33 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <a href="<?= site_url('auth/signout') ?>" class="btn btn-danger">Sign Out</a>
+                <a href="<?= $signOutUrl ?>" class="btn btn-danger">Sign Out</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="bookRepairModal" tabindex="-1" aria-labelledby="bookRepairModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="bookRepairModalLabel">Circuit Cart Account Required</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Booking a repair appointment requires a Circuit Cart account. Sign in or create an account to schedule your repair.
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="<?= site_url('auth/signin') ?>" class="btn btn-primary">Sign In/Up</a>
             </div>
         </div>
     </div>
 </div>
 
 <script src="<?= base_url('assets/js/bs/bootstrap.bundle.min.js');?>">
+</script>
+<script src="<?= base_url('assets/js/csrf.js');?>">
 </script>
 <script src="<?= base_url('assets/js/theme.js');?>">
 </script>

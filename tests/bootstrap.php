@@ -159,16 +159,24 @@ class FakeLoader {
 }
 
 /**
- * Canned POST input ($this->input->post()).
+ * Canned POST/GET input ($this->input->post() / get()).
  */
 class FakeInput {
 	public $postData = [];
+	public $getData = [];
 
 	public function post($key = NULL, $xss = FALSE) {
 		if ($key === NULL) {
 			return $this->postData;
 		}
 		return $this->postData[$key] ?? NULL;
+	}
+
+	public function get($key = NULL, $xss = FALSE) {
+		if ($key === NULL) {
+			return $this->getData;
+		}
+		return $this->getData[$key] ?? NULL;
 	}
 }
 
@@ -331,6 +339,16 @@ function make_my_controller(string $class, $session, $toastify, $db = NULL, $loa
 
 	$controller->session  = $session;
 	$controller->toastify = $toastify;
+	$controller->input    = new FakeInput();
+	$controller->config   = new FakeConfig();
+	$controller->config->items['role_home'] = [
+		'cashier'    => 'pos',
+		'manager'    => 'employee/analytics',
+		'technician' => 'storage/booking',
+		'developer'  => 'storage/bugs',
+		'logistics'  => 'inventory/stocks',
+		'admin'      => 'employee/dashboard',
+	];
 	if ($db !== NULL) {
 		$controller->db = $db;
 		$controller->PartsModel = new PartsModel();

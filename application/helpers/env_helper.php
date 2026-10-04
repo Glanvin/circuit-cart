@@ -1,6 +1,7 @@
 <?php
 if ( ! function_exists('app_env'))
 {
+	//Reads an environment value from getenv, $_ENV, or $_SERVER.
 	function app_env($key, $default = NULL)
 	{
 		$value = getenv($key);

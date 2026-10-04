@@ -49,7 +49,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 | Examples:	my-controller/index	-> my_controller/index
 |		my-controller/my-method	-> my_controller/my_method
 */
-$route['default_controller'] = 'AuthController';
+$route['default_controller'] = 'HomeController';
 $route['home'] = 'HomeController';
 $route['browse'] = 'BrowseController';
 $route['cart'] = 'CartController';
@@ -58,14 +58,55 @@ $route['cart/buy/(:num)'] = 'CartController/buyNow/$1';
 $route['cart/update/(:num)'] = 'CartController/update/$1';
 $route['cart/remove/(:num)'] = 'CartController/remove/$1';
 $route['checkout'] = 'CheckoutController';
+$route['checkout/place'] = 'CheckoutController/placeOrder';
+$route['checkout/success'] = 'CheckoutController/success';
+
+$route['booking'] = 'BookingController';
+$route['booking/appointments'] = 'BookingController/appointments';
+
+$route['bugs'] = 'BugController';
+
+$route['storage/booking'] = 'EmployeeBookingController';
+$route['storage/booking/approve/(:num)'] = 'EmployeeBookingController/approve/$1';
+$route['storage/booking/reschedule/(:num)'] = 'EmployeeBookingController/reschedule/$1';
+$route['storage/booking/decline/(:num)'] = 'EmployeeBookingController/decline/$1';
+$route['storage/booking/finish/(:num)'] = 'EmployeeBookingController/finish/$1';
+
+$route['storage/bugs'] = 'EmployeeBugController';
+$route['storage/bugs/status/(:num)/(:any)'] = 'EmployeeBugController/status/$1/$2';
 
 $route['employee/dashboard'] = 'DashboardController';
-$route['employee/manage/users'] = 'ManagementController';
-$route['employee/manage/employees'] = 'ManagementController';
+$route['employee/analytics'] = 'AnalyticsController';
+$route['employee/analytics/data'] = 'AnalyticsController/data';
+$route['employee/orders'] = 'AnalyticsController/orders';
+$route['employee/orders/status/(:num)/(:any)'] = 'AnalyticsController/orderStatus/$1/$2';
+$route['employee/attendance'] = 'AttendanceController';
+$route['employee/attendance/view/(:num)'] = 'AttendanceController/index/$1';
+$route['employee/attendance/in'] = 'AttendanceController/timeIn';
+$route['employee/attendance/out'] = 'AttendanceController/timeOut';
+$route['employee/manage/users'] = 'ManagementController/users';
+$route['employee/manage/users/import'] = 'ManagementController/importUsers';
+$route['employee/manage/users/sample'] = 'ManagementController/userTemplate';
+$route['employee/manage/employees'] = 'ManagementController/employees';
+$route['employee/manage/employees/new'] = 'ManagementController/newEmployee';
+
+$route['employee/settings'] = 'EmployeeSettingsController';
+$route['employee/settings/updateProfile'] = 'EmployeeSettingsController/updateProfile';
+$route['employee/settings/updatePassword'] = 'EmployeeSettingsController/updatePassword';
+$route['employee/settings/verify'] = 'EmployeeSettingsController/verify';
+
+$route['employee'] = 'EmployeeAuthController';
+$route['employee/signin'] = 'EmployeeAuthController/signin';
+$route['employee/signout'] = 'EmployeeAuthController/signout';
+
+$route['pos'] = 'PosController';
+$route['pos/complete'] = 'PosController/complete';
 
 $route['inventory/stocks'] = 'StockController';
-$route['inventory/stocks/add'] = 'StockController/addStock';
 $route['inventory/stocks/new'] = 'StockController/newSKU';
+$route['inventory/stocks/edit/(:num)'] = 'StockController/edit/$1';
+$route['inventory/stocks/add/(:num)'] = 'StockController/addStock/$1';
+$route['inventory/stocks/remove/(:num)'] = 'StockController/remove/$1';
 
 $route['auth'] = 'AuthController';
 $route['auth/signin'] = 'AuthController/signin';
@@ -77,6 +118,8 @@ $route['settings'] = 'SettingsController';
 $route['settings/theme'] = 'SettingsController/theme';
 $route['settings/updateProfile'] = 'SettingsController/updateProfile';
 $route['settings/updatePassword'] = 'SettingsController/updatePassword';
+
+$route['email'] = 'EmailController/index';
 
 $route['404_override'] = 'ErrorController';
 $route['translate_uri_dashes'] = FALSE;

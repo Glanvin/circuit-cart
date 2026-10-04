@@ -2,6 +2,19 @@
   text-align: justify;
 }
 
+/* Sticky footer: body is a column flex box and the footer container uses
+   mt-auto, so the footer is pinned to the bottom even on short pages. */
+html,
+body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 /* Clamp product titles to a fixed two-line area so prices and
    buttons align at the same height across cards. */
 .card-title-clamp {

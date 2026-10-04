@@ -4,7 +4,7 @@
     <?php
     if (!empty($parts)) {
         $deviceTypes = [];
-        $categories  = [];
+        $categories = [];
 
         foreach ($parts as $part) {
             if (!empty($part['device_type'])) {
@@ -16,12 +16,12 @@
         }
 
         $deviceTypes = array_keys($deviceTypes);
-        $categories  = array_keys($categories);
+        $categories = array_keys($categories);
         sort($deviceTypes);
         sort($categories);
     } else {
         $deviceTypes = [];
-        $categories  = [];
+        $categories = [];
     }
     ?>
 
@@ -74,7 +74,7 @@
                             <!-- Price + actions pinned to the bottom -->
                             <div class="mt-auto">
                                 <p class="fw-bold fs-5 mb-3">
-                                    Php<?= $part['selling_price']?>
+                                    ₱ <?= number_format((float) $part['selling_price'], 2) ?>
                                 </p>
                                 
                                 <div class="d-grid gap-2">

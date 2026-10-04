@@ -3,6 +3,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 
 class BrowseController extends MY_Controller {
 
+	protected bool $requireLogin = FALSE;
+
+	//Renders the parts browse page, falling back to an empty list on failure.
 	public function index()
 	{
 		try {

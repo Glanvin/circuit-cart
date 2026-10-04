@@ -5,6 +5,7 @@ class SettingsController extends MY_Controller {
 
 	protected string $navbar = 'templates/navbar_settings';
 
+	//Renders the settings page with the current user's profile.
 	public function index()
 	{
 		$user = $this->UserModel->findUserByUsername($this->session->userdata('username'));
@@ -15,6 +16,7 @@ class SettingsController extends MY_Controller {
 		]);
 	}
 
+	//Persists the selected theme in the session and returns a JSON acknowledgement.
 	public function theme()
 	{
 		$theme = $this->input->post('theme', true);
@@ -29,12 +31,16 @@ class SettingsController extends MY_Controller {
 		$this->output->set_content_type('application/json')->set_output(json_encode(['success' => true]));
 	}
 
+	/*
+	 * Validates and saves the editable profile or address fields, handling
+	 * email uniqueness before redirecting back to the settings page.
+	 */
 	public function updateProfile()
 	{
 		$user = $this->UserModel->findUserByUsername($this->session->userdata('username'));
 
 		$isProfile = (bool) $this->input->post('save_profile');
-		$fields    = $isProfile
+		$fields = $isProfile
 			? ['firstname', 'middlename', 'lastname', 'contactnumber', 'email']
 			: ['address'];
 
@@ -101,6 +107,10 @@ class SettingsController extends MY_Controller {
 		redirect('settings', 'refresh');
 	}
 
+	/*
+	 * Validates the current and new passwords, then saves the newly hashed
+	 * password and redirects back to the settings page.
+	 */
 	public function updatePassword()
 	{
 		$user = $this->UserModel->findUserByUsername($this->session->userdata('username'));
@@ -112,7 +122,7 @@ class SettingsController extends MY_Controller {
 			$this->toastify->error('Please correct the highlighted fields');
 			$this->render('pages/settings', [
 				'title' => 'Settings',
-				'user'  => $user,
+				'user' => $user,
 			]);
 			return;
 		}
@@ -127,6 +137,7 @@ class SettingsController extends MY_Controller {
 		redirect('settings', 'refresh');
 	}
 
+	//Form-validation callback that checks the submitted current password.
 	public function check_current_password($password)
 	{
 		$user = $this->UserModel->findUserByUsername($this->session->userdata('username'));

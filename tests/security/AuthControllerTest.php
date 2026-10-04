@@ -44,13 +44,13 @@ class AuthControllerTest extends TestCase {
 	// index()
 	// ----------------------------------------------------------------
 
-	public function testIndexRedirectsAdminToDashboard() {
+	public function testIndexRedirectsSignedInUserToHome() {
 		$this->session->set_userdata('username', 'admin1');
 		$this->session->set_userdata('role', 'admin');
 
 		$this->controller->index();
 
-		$this->assertSame('employee/dashboard', redirect_target());
+		$this->assertSame('home', redirect_target());
 	}
 
 	public function testIndexRedirectsNonAdminToHome() {
@@ -103,7 +103,7 @@ class AuthControllerTest extends TestCase {
 		$this->assertSame('admin1', $this->session->userdata('username'));
 		$this->assertSame('admin', $this->session->userdata('role'));
 		$this->assertSame('admin1@example.com', $this->session->userdata('email'));
-		$this->assertSame('employee/dashboard', redirect_target());
+		$this->assertSame('home', redirect_target());
 	}
 
 	public function testSigninSuccessRedirectsStaffToHome() {

@@ -31,8 +31,9 @@ class ControllerPagesTest extends TestCase {
 	}
 
 	public function testDashboardRequiresAdminAndRendersDashboard() {
-		$this->session->set_userdata('username', 'admin1');
-		$this->session->set_userdata('role', 'admin');
+		$this->session->set_userdata('employee_id', 1);
+		$this->session->set_userdata('employee_name', 'Alice Admin');
+		$this->session->set_userdata('employee_role', 'admin');
 
 		$c = make_my_controller(DashboardController::class, $this->session, $this->toastify, new FakeDb(), $this->loader);
 		$c->index();
@@ -42,8 +43,9 @@ class ControllerPagesTest extends TestCase {
 
 	public function testDashboardRejectsNonAdmin() {
 		redirect_stop(TRUE);
-		$this->session->set_userdata('username', 'staff1');
-		$this->session->set_userdata('role', 'staff');
+		$this->session->set_userdata('employee_id', 6);
+		$this->session->set_userdata('employee_name', 'Casey Cashier');
+		$this->session->set_userdata('employee_role', 'cashier');
 
 		try {
 			make_my_controller(DashboardController::class, $this->session, $this->toastify, new FakeDb(), $this->loader);
@@ -51,23 +53,25 @@ class ControllerPagesTest extends TestCase {
 		} catch (RedirectException $e) {
 		}
 
-		$this->assertSame('home', redirect_target());
+		$this->assertSame('pos', redirect_target());
 	}
 
 	public function testManagementRequiresAdminAndRendersManagePage() {
-		$this->session->set_userdata('username', 'admin1');
-		$this->session->set_userdata('role', 'admin');
+		$this->session->set_userdata('employee_id', 1);
+		$this->session->set_userdata('employee_name', 'Alice Admin');
+		$this->session->set_userdata('employee_role', 'admin');
 
 		$c = make_my_controller(ManagementController::class, $this->session, $this->toastify, new FakeDb(), $this->loader);
-		$c->index();
+		$c->users();
 
-		$this->assertContains('pages/manage', $this->views());
+		$this->assertContains('pages/employees/manage_users', $this->views());
 	}
 
 	public function testManagementRejectsNonAdmin() {
 		redirect_stop(TRUE);
-		$this->session->set_userdata('username', 'staff1');
-		$this->session->set_userdata('role', 'staff');
+		$this->session->set_userdata('employee_id', 6);
+		$this->session->set_userdata('employee_name', 'Casey Cashier');
+		$this->session->set_userdata('employee_role', 'cashier');
 
 		try {
 			make_my_controller(ManagementController::class, $this->session, $this->toastify, new FakeDb(), $this->loader);
@@ -75,6 +79,6 @@ class ControllerPagesTest extends TestCase {
 		} catch (RedirectException $e) {
 		}
 
-		$this->assertSame('home', redirect_target());
+		$this->assertSame('pos', redirect_target());
 	}
 }
