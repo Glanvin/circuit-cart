@@ -17,7 +17,15 @@ vendor/bin/phpunit --filter ToastifyTest
 vendor/bin/phpunit --filter testRenderEscapesHtmlInMessage
 ```
 
-> Known pre-existing failures (unrelated to current work): `EmailControllerTest` (fatal — it requires a non-existent `application/controllers/EmailController.php`), `AuthControllerTest` (`app_env()` undefined in the test context), `ControllerPagesTest` / `ControllerErrorPathsTest` (`FakeDb::order_by()` missing, plus an `addStock()` arity mismatch), and `ConfigIntegrityTest` (expects `employee/manage/users` → `ManagementController`).
+> Known failures (111 tests, 10 errors + 1 failure), none of them a regression:
+> - `ControllerPagesTest` / `ControllerErrorPathsTest` — `FakeDb` has no `order_by()`, plus an `addStock()` arity mismatch. Both fakes need widening before these classes can pass.
+> - `ConfigIntegrityTest::testRoutesMapToExpectedControllers` — expects `employee/manage/users` → `ManagementController`, but the route points at `ManagementController/users`.
+> - `EmailControllerTest` — stale. It exercises `sendWelcome()` / `sendOTP()`, which moved into the helpers when `EmailController` was retired, and it injects its fakes after the constructor has already called `check_session()`. The `EmailController` that exists now is the employee attachment composer, so the class needs rewriting against that API.
+>
+> Not covered at all yet: the spreadsheet user import (`UserImporter`,
+> `ManagementController::importUsers`) and the email composer. A release gate
+> needs `tests/libraries/UserImporterTest.php` at minimum, since the row
+> validation and the bcrypt 72-byte cut-off are pure logic and cheap to test.
 
 ## How it works
 
