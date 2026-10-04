@@ -119,5 +119,7 @@ $route['settings/theme'] = 'SettingsController/theme';
 $route['settings/updateProfile'] = 'SettingsController/updateProfile';
 $route['settings/updatePassword'] = 'SettingsController/updatePassword';
 
+$route['email'] = 'EmailController/index';
+
 $route['404_override'] = 'ErrorController';
 $route['translate_uri_dashes'] = FALSE;

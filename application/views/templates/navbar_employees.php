@@ -61,6 +61,12 @@ $titleClass = fn(string $match): string => strtolower($title ?? '') == $match ? 
                 </li>
                 <?php endif; ?>
 
+                <?php if (in_array($role, ['admin', 'manager'], true)): ?>
+                <li class="nav-item">
+                    <a class="nav-link <?= $titleClass('email')?>" href="<?= site_url('email') ?>">Email</a>
+                </li>
+                <?php endif; ?>
+
                 <li class="nav-item">
                     <a class="nav-link <?= $titleClass('attendance') ?>" href="<?= site_url('employee/attendance') ?>">Attendance</a>
                 </li>
