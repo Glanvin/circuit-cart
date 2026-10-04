@@ -1,0 +1,153 @@
+# Cuts a release: bumps the version, commits it, tags it and opens a GitHub
+# release. The version is derived from the newest tag, so nothing has to be
+# edited by hand.
+#
+# How to use it: repo -> Actions -> Release -> Run workflow -> pick how far to
+# bump -> Run workflow. Do this after main already has your commits on it.
+#
+# Set this to trigger automatically instead by adding under `on:`:
+#     push:
+#       branches: [main]
+# ...which means every merge to main becomes a release. Keep the guard in
+# "Work out the next version" if you do, otherwise the push this workflow makes
+# would trigger it again forever.
+
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: Which part of the version to increase
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
+
+# Pushing the release commit and tag needs write access. Without this the push
+# step fails with 403.
+permissions:
+  contents: write
+
+# One release at a time. A second run waits instead of racing the first.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Fetch the whole history and every tag: the previous version comes from
+      # the newest tag, so a shallow clone has nothing to read it from.
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Work out the next version
+        id: version
+        env:
+          BUMP: ${{ inputs.bump }}
+        run: |
+          set -euo pipefail
+
+          # Guard: a release commit at the tip means there is nothing new to
+          # release. Without this, running the workflow twice would cut two
+          # versions for the same code.
+          subject="$(git log -1 --format=%s)"
+          if [[ "$subject" =~ ^Release[[:space:]]v ]]; then
+            echo "release=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::HEAD is already a release commit ($subject). Nothing to do."
+            exit 0
+          fi
+
+          # Newest tag, highest version first.
+          last="$(git tag --list 'v[0-9]*' --sort=-v:refname | head -n1)"
+          if [[ -z "$last" ]]; then
+            # No tags at all: fall back to the version index.php already has.
+            last="v$(sed -n "s/.*APP_VERSION', '\([0-9][0-9.]*\)'.*/\1/p" index.php)"
+            echo "::notice::No tags found, starting from the version in index.php ($last)."
+          fi
+
+          core="${last#v}"
+          major="${core%%.*}"
+          rest="${core#*.}"
+          minor="${rest%%.*}"
+          patch="${rest##*.}"
+
+          case "${BUMP:-patch}" in
+            major) major=$((major + 1)); minor=0; patch=0 ;;
+            minor) minor=$((minor + 1)); patch=0 ;;
+            *)     patch=$((patch + 1)) ;;
+          esac
+
+          version="${major}.${minor}.${patch}"
+
+          echo "release=true" >> "$GITHUB_OUTPUT"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "Releasing v${version} (previous tag: ${last})"
+
+      - name: Write the version into the files
+        if: steps.version.outputs.release == 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          # index.php carries the fallback the footer badge renders.
+          sed -i -E "s/(APP_VERSION', ')[0-9][0-9.]*('.*)/\1${VERSION}\2/" index.php
+
+          # .env.example documents the override. Only touch it when the line is
+          # actually there, so this stays harmless if it is ever removed.
+          if grep -q '^APP_VERSION=' .env.example; then
+            sed -i -E "s/^(APP_VERSION=\")[0-9][0-9.]*(\")/\1${VERSION}\2/" .env.example
+          fi
+
+          # Catch a sed that silently matched nothing, and catch the two files
+          # disagreeing, before anything is committed.
+          if ! grep -q "APP_VERSION', '${VERSION}'" index.php; then
+            echo "::error::index.php still does not say ${VERSION}"
+            exit 1
+          fi
+          if grep -q '^APP_VERSION=' .env.example \
+            && ! grep -q "^APP_VERSION=\"${VERSION}\"" .env.example; then
+            echo "::error::.env.example disagrees with index.php about the version"
+            exit 1
+          fi
+
+          git --no-pager diff
+
+      - name: Commit, tag and push
+        if: steps.version.outputs.release == 'true'
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add index.php .env.example
+          git commit -m "Release v${VERSION}"
+          git tag -a "v${VERSION}" -m "Release v${VERSION}"
+
+          # Atomic so the branch and the tag move together: either the release
+          # exists everywhere or nowhere, never a tag with no commit on main.
+          # A protected branch will refuse this; see the note in the README of
+          # this workflow about allowing the bot through.
+          git push --atomic origin main "v${VERSION}"
+
+      - name: Open the GitHub release
+        if: steps.version.outputs.release == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: v${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          # --generate-notes fills in the commits since the previous tag.
+          gh release create "$TAG" --generate-notes --title "$TAG"
