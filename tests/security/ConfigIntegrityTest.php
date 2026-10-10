@@ -80,7 +80,7 @@ class ConfigIntegrityTest extends TestCase {
 			'home'                       => 'HomeController',
 			'browse'                     => 'BrowseController',
 			'employee/dashboard'         => 'DashboardController',
-			'employee/manage/users'      => 'ManagementController',
+			'employee/manage/users'      => 'ManagementController/users',
 			'inventory/stocks'           => 'StockController',
 			'auth/signin'                => 'AuthController/signin',
 			'auth/signup'                => 'AuthController/signup',

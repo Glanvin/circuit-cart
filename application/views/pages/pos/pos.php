@@ -1,5 +1,6 @@
 <div class="container-fluid p-4">
     <script id="pos-parts" type="application/json"><?= json_encode($parts) ?></script>
+    <script id="pos-payment-methods" type="application/json"><?= json_encode($payment_methods) ?></script>
 
     <div class="row g-4">
         <div class="col-lg-7">
@@ -80,23 +81,30 @@
                         </table>
                     </div>
 
-                    <div class="d-flex justify-content-between fw-bold border-top pt-2 mb-3">
+                    <div class="d-flex justify-content-between fw-bold border-bottom pb-2 mb-3">
                         <span>Subtotal</span>
                         <span id="posSubtotal">₱ 0.00</span>
                     </div>
 
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <label class="form-label mb-1" for="posTendered">Cash Tendered</label>
-                            <input type="number" id="posTendered" class="form-control" min="0" step="0.01" placeholder="0.00">
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label mb-1" for="posChange">Change</label>
-                            <input type="text" id="posChange" class="form-control" readonly value="₱ 0.00">
-                        </div>
+                    <div id="posTaxLines" class="mb-3" style="display: none;">
+                        <!-- Tax lines will be inserted here -->
                     </div>
 
-                    <button type="button" class="btn btn-success w-100" id="posComplete">
+                    <div class="d-flex justify-content-between fw-bold border-top pt-2 mb-3">
+                        <span>Total</span>
+                        <span id="posTotal">₱ 0.00</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Payment Methods</label>
+                        <div id="posPaymentMethods">
+                            <!-- Payment method rows inserted here -->
+                        </div>
+                        <div class="form-text text-body-secondary small">Total paid: <strong id="posPaidTotal">₱ 0.00</strong> / <strong id="posDueTotal">₱ 0.00</strong></div>
+                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="posAddPayment">+ Add Payment Method</button>
+                    </div>
+
+                    <button type="button" class="btn btn-success w-100" id="posComplete" disabled>
                         Complete Sale
                     </button>
                 </div>

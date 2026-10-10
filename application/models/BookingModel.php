@@ -107,4 +107,117 @@ class BookingModel extends CI_Model {
         $this->db->where('id', $id);
         return $this->db->update('tbl_booking', $data);
     }
+
+    //----------------------------------------------------------------------
+    // Appointment Slots
+    //----------------------------------------------------------------------
+
+    //Returns active appointment slots for a given date.
+    public function getSlotsForDate($date) {
+        $this->db->where('slot_date', $date);
+        $this->db->where('is_active', 1);
+        $this->db->order_by('start_time', 'ASC');
+        $query = $this->db->get('tbl_appointment_slots');
+        if (!$query) {
+            throw new AppException('Q10');
+        }
+        return $query->result_array();
+    }
+
+    //Checks if a specific time slot on a date has capacity for a new booking.
+    //Returns the slot row if available, FALSE if not.
+    public function checkSlotAvailability($date, $time) {
+        $this->db->where('slot_date', $date);
+        $this->db->where('start_time <=', $time);
+        $this->db->where('end_time >', $time);
+        $this->db->where('is_active', 1);
+        $query = $this->db->get('tbl_appointment_slots');
+        if (!$query) {
+            throw new AppException('Q10');
+        }
+
+        $slot = $query->row_array();
+        if (!$slot) {
+            return FALSE;
+        }
+
+        //Count existing bookings in this slot (pending, approved, rescheduled)
+        $this->db->where('preferred_date', $date);
+        $this->db->where('preferred_time', $slot['start_time']);
+        $this->db->where_in('status', ['pending', 'approved', 'rescheduled']);
+        $bookingQuery = $this->db->get('tbl_booking');
+        if (!$bookingQuery) {
+            throw new AppException('Q04');
+        }
+
+        $bookingCount = $bookingQuery->num_rows();
+
+        return $bookingCount < (int) $slot['capacity'] ? $slot : FALSE;
+    }
+
+    //Returns available slots for a date as ['time' => 'HH:MM', 'end_time' => 'HH:MM', 'capacity' => n, 'booked' => n]
+    public function getAvailableSlotsForDate($date) {
+        $slots = $this->getSlotsForDate($date);
+        $available = [];
+
+        foreach ($slots as $slot) {
+            $this->db->where('preferred_date', $date);
+            $this->db->where('preferred_time', $slot['start_time']);
+            $this->db->where_in('status', ['pending', 'approved', 'rescheduled']);
+            $bookingQuery = $this->db->get('tbl_booking');
+            if (!$bookingQuery) {
+                throw new AppException('Q04');
+            }
+
+            $booked = $bookingQuery->num_rows();
+            $capacity = (int) $slot['capacity'];
+
+            if ($booked < $capacity) {
+                $available[] = [
+                    'time' => $slot['start_time'],
+                    'end_time' => $slot['end_time'],
+                    'capacity' => $capacity,
+                    'booked' => $booked,
+                    'remaining' => $capacity - $booked,
+                ];
+            }
+        }
+
+        return $available;
+    }
+
+    //Checks if a specific time slot on a date has capacity for a new booking,
+    //optionally excluding a specific booking ID (for reschedule).
+    //Returns the slot row if available, FALSE if not.
+    public function checkSlotAvailabilityExcluding($date, $time, $excludeBookingId = NULL) {
+        $this->db->where('slot_date', $date);
+        $this->db->where('start_time <=', $time);
+        $this->db->where('end_time >', $time);
+        $this->db->where('is_active', 1);
+        $query = $this->db->get('tbl_appointment_slots');
+        if (!$query) {
+            throw new AppException('Q10');
+        }
+
+        $slot = $query->row_array();
+        if (!$slot) {
+            return FALSE;
+        }
+
+        //Count existing bookings in this slot (pending, approved, rescheduled)
+        $this->db->where('preferred_date', $date);
+        $this->db->where('preferred_time', $slot['start_time']);
+        $this->db->where_in('status', ['pending', 'approved', 'rescheduled']);
+        if ($excludeBookingId !== NULL) {
+            $this->db->where('id !=', $excludeBookingId);
+        }
+        $bookingQuery = $this->db->get('tbl_booking');
+        if (!$bookingQuery) {
+            throw new AppException('Q04');
+        }
+
+        $bookingCount = $bookingQuery->num_rows();
+
+        return $bookingCount < (int) $slot['capacity'] ? $slot : FALSE;
+    }
 }

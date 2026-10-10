@@ -25,12 +25,23 @@ class BookingController extends MY_Controller {
 						return;
 					}
 
+					$preferredDate = $this->input->post('preferred_date', true);
+					$preferredTime = $this->input->post('preferred_time', true);
+
+					//Check appointment slot availability
+					$slot = $this->BookingModel->checkSlotAvailability($preferredDate, $preferredTime);
+					if (!$slot) {
+						$this->toastify->error('The selected time slot is not available or has reached capacity. Please choose another date/time.');
+						$this->renderForm();
+						return;
+					}
+
 					$this->BookingModel->createBooking(array_merge([
 						'username' => $this->session->userdata('username'),
 						'device' => $this->input->post('device', true),
 						'issue' => $this->input->post('issue', true),
-						'preferred_date' => $this->input->post('preferred_date', true),
-						'preferred_time' => $this->input->post('preferred_time', true),
+						'preferred_date' => $preferredDate,
+						'preferred_time' => $slot['start_time'],  //Normalize to slot start time
 						'status' => 'pending',
 						'images' => $uploads ? json_encode($uploads) : NULL,
 					]));
@@ -175,5 +186,24 @@ class BookingController extends MY_Controller {
 				'status' => 'pending',
 			])
 		);
+	}
+
+	//AJAX endpoint: returns available appointment slots for a given date.
+	public function getSlots($date)
+	{
+		$this->output->set_content_type('application/json');
+
+		//Validate date format
+		if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) || !DateTimeImmutable::createFromFormat('Y-m-d', $date)) {
+			$this->output->set_output(json_encode(['ok' => false, 'error' => 'Invalid date.']));
+			return;
+		}
+
+		try {
+			$slots = $this->BookingModel->getAvailableSlotsForDate($date);
+			$this->output->set_output(json_encode(['ok' => true, 'slots' => $slots]));
+		} catch (AppException $e) {
+			$this->output->set_output(json_encode(['ok' => false, 'error' => $e->toToast()]));
+		}
 	}
 }

@@ -54,7 +54,7 @@ class EmployeeBookingController extends MY_Controller {
 
 	/*
 	 * Marks an ongoing repair as completed, locking the record, notifying the
-	 * owner, and closing the booking ticket.
+	 * owner, and closing the booking ticket. Creates a repair job for tracking.
 	 */
 	public function finish(int $booking_id)
 	{
@@ -67,17 +67,30 @@ class EmployeeBookingController extends MY_Controller {
 				return;
 			}
 
+			//Assign to current technician if they're a technician, otherwise leave unassigned
+			$technician_id = in_array($this->session->userdata('employee_role'), ['technician', 'admin'])
+				? (int) $this->session->userdata('employee_id')
+				: NULL;
+
+			//Create repair job from booking
+			$job_id = $this->RepairJobModel->createFromBooking($booking_id, $technician_id);
+			$job = $this->RepairJobModel->getJobById($job_id);
+
+			//Update booking status
 			$this->BookingModel->updateBooking($booking_id, ['status' => 'finished']);
 			$booking['status'] = 'finished';
 
 			send_booking_notification(
 				$booking['username'],
-				'Repair Completed - Circuit Cart',
-				'Great news! Your repair is complete. Your device is ready to be picked up.',
-				booking_details($booking)
+				'Repair Job Created - Circuit Cart',
+				'Your repair has been accepted. A repair job (' . $job['job_reference'] . ') has been created. Our technician will begin diagnosis shortly.',
+				array_merge(booking_details($booking), [
+					'Job Reference' => $job['job_reference'],
+					'Status' => ucfirst($job['status']),
+				])
 			);
 
-			$this->toastify->success('Booking marked as finished.');
+			$this->toastify->success('Booking finished. Repair job ' . $job['job_reference'] . ' created.');
 		} catch (AppException $e) {
 			$this->toastify->error($e->toToast());
 		}
@@ -112,14 +125,22 @@ class EmployeeBookingController extends MY_Controller {
 		try {
 			$booking = $this->lockedBooking($booking_id);
 
+			//Check slot availability for the new date/time (excluding this booking)
+			$slot = $this->BookingModel->checkSlotAvailabilityExcluding($date, $time, $booking_id);
+			if (!$slot) {
+				$this->toastify->error('The selected time slot is not available or has reached capacity.');
+				redirect('storage/booking', 'refresh');
+				return;
+			}
+
 			$this->BookingModel->updateBooking($booking_id, [
 				'preferred_date' => $date,
-				'preferred_time' => $time,
+				'preferred_time' => $slot['start_time'],  //Normalize to slot start time
 				'status' => 'rescheduled',
 			]);
 
 			$booking['preferred_date'] = $date;
-			$booking['preferred_time'] = $time;
+			$booking['preferred_time'] = $slot['start_time'];
 			$booking['status'] = 'rescheduled';
 
 			send_booking_notification(

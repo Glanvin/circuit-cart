@@ -63,6 +63,21 @@ $route['checkout/success'] = 'CheckoutController/success';
 
 $route['booking'] = 'BookingController';
 $route['booking/appointments'] = 'BookingController/appointments';
+$route['booking/slots/(:any)'] = 'BookingController/getSlots/$1';
+
+$route['orders'] = 'OrdersController';
+$route['orders/view/(:num)'] = 'OrdersController/view/$1';
+
+$route['repair/jobs'] = 'RepairJobController';
+$route['repair/jobs/view/(:num)'] = 'RepairJobController/view/$1';
+$route['repair/jobs/status/(:num)'] = 'RepairJobController/status/$1';
+$route['repair/jobs/diagnose/(:num)'] = 'RepairJobController/diagnose/$1';
+$route['repair/jobs/approve/(:num)'] = 'RepairJobController/approveEstimate/$1';
+$route['repair/jobs/parts/(:num)'] = 'RepairJobController/addParts/$1';
+$route['repair/jobs/labor/(:num)'] = 'RepairJobController/addLabor/$1';
+$route['repair/jobs/note/(:num)'] = 'RepairJobController/addNote/$1';
+$route['repair/jobs/ready/(:num)'] = 'RepairJobController/ready/$1';
+$route['repair/jobs/pickup/(:num)'] = 'RepairJobController/pickup/$1';
 
 $route['bugs'] = 'BugController';
 

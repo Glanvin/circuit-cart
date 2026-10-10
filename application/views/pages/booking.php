@@ -30,10 +30,14 @@
                     </div>
                     <div class="col-md-6">
                         <div class="form-floating">
-                            <input type="time" class="form-control <?= is_invalid('preferred_time') ?>" id="preferred_time" name="preferred_time" value="<?= set_value('preferred_time') ?>" placeholder="Visit Time">
+                            <select class="form-select <?= is_invalid('preferred_time') ?>" id="preferred_time" name="preferred_time" required>
+                                <option value="">Select a date first</option>
+                            </select>
                             <label for="preferred_time">Preferred Visit Time*</label>
                             <?= form_error('preferred_time', '<div class="invalid-feedback">', '</div>') ?>
                         </div>
+                        <div id="slot-loading" class="form-text text-body-secondary d-none">Loading available slots...</div>
+                        <div id="slot-empty" class="form-text text-danger d-none">No available slots for this date.</div>
                     </div>
                 </div>
 
@@ -48,3 +52,73 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const dateInput = document.getElementById('preferred_date');
+    const timeSelect = document.getElementById('preferred_time');
+    const loadingEl = document.getElementById('slot-loading');
+    const emptyEl = document.getElementById('slot-empty');
+
+    if (!dateInput || !timeSelect) return;
+
+    dateInput.addEventListener('change', function() {
+        const date = this.value;
+        if (!date) {
+            timeSelect.innerHTML = '<option value="">Select a date first</option>';
+            emptyEl.classList.add('d-none');
+            return;
+        }
+
+        //Show loading
+        timeSelect.disabled = true;
+        timeSelect.innerHTML = '<option value="">Loading...</option>';
+        loadingEl.classList.remove('d-none');
+        emptyEl.classList.add('d-none');
+
+        fetch('<?= site_url('booking/slots/') ?>' + encodeURIComponent(date))
+            .then(response => response.json())
+            .then(data => {
+                loadingEl.classList.add('d-none');
+                timeSelect.disabled = false;
+
+                if (!data.ok) {
+                    timeSelect.innerHTML = '<option value="">Error loading slots</option>';
+                    emptyEl.textContent = data.error || 'Failed to load slots.';
+                    emptyEl.classList.remove('d-none');
+                    return;
+                }
+
+                if (!data.slots || data.slots.length === 0) {
+                    timeSelect.innerHTML = '<option value="">No slots available</option>';
+                    emptyEl.classList.remove('d-none');
+                    return;
+                }
+
+                //Populate time slots
+                timeSelect.innerHTML = '<option value="">Choose a time</option>';
+                data.slots.forEach(slot => {
+                    const start = slot.time.substring(0, 5);
+                    const end = slot.end_time.substring(0, 5);
+                    const opt = document.createElement('option');
+                    opt.value = start;
+                    opt.textContent = start + ' - ' + end + ' (' + slot.remaining + ' left)';
+                    timeSelect.appendChild(opt);
+                });
+            })
+            .catch(() => {
+                loadingEl.classList.add('d-none');
+                timeSelect.disabled = false;
+                timeSelect.innerHTML = '<option value="">Error loading slots</option>';
+                emptyEl.textContent = 'Failed to load slots. Please try again.';
+                emptyEl.classList.remove('d-none');
+            });
+    });
+
+    //Pre-select time if form was re-rendered with validation error
+    const preselectedTime = '<?= set_value('preferred_time') ?>';
+    if (preselectedTime && timeSelect.options.length > 1) {
+        timeSelect.value = preselectedTime;
+    }
+});
+</script>
