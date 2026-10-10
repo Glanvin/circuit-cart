@@ -12,6 +12,7 @@ $config['error_codes'] = array(
 
 	'P07' => 'No employee exists with ID {id}.',
 	'P08' => 'No sale exists with ID {id}.',
+	'P09' => 'No repair job exists with ID {id}.',
 
 	//Q = Query, database failure
 	'Q01' => 'Failed to fetch parts.',
@@ -23,6 +24,11 @@ $config['error_codes'] = array(
 	'Q07' => 'Failed to get employees.',
 	'Q08' => 'Failed to save the sale.',
 	'Q09' => 'Failed to get sales.',
+	'Q10' => 'Failed to get appointment slots.',
+	'Q11' => 'Failed to get repair job.',
+	'Q12' => 'Failed to get tax rates.',
+	'Q13' => 'Failed to get payment methods.',
+	'Q14' => 'Failed to get stock movements.',
 
 	//U = User spreadsheet import
 	'U01' => 'The spreadsheet could not be read. Download the sample file and check its contents.',
@@ -35,6 +41,8 @@ $config['error_codes'] = array(
 	'D01' => 'Data is empty',
 	'D02' => 'Insufficient stock for {item}.',
 	'D03' => 'Employee {id} is already registered.',
+	'D04' => 'No estimate to approve.',
+	'D05' => 'Payment total does not match sale total.',
 
 	//S = Session
 	'S01' => 'The Stored Session is invalid. Please login again',

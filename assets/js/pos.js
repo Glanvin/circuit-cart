@@ -8,7 +8,15 @@
         parts = [];
     }
 
+    var paymentMethods = [];
+    try {
+        paymentMethods = JSON.parse(document.getElementById('pos-payment-methods').textContent) || [];
+    } catch (e) {
+        paymentMethods = [];
+    }
+
     var cart = [];
+    var paymentRows = []; // {method_id, code, amount, reference, rowId}
 
     var listEl = document.getElementById('posProductList');
     var cartEl = document.getElementById('posCartLines');
@@ -17,12 +25,17 @@
     var sortEl = document.getElementById('posSort');
     var hideOosEl = document.getElementById('posHideOos');
     var subtotalEl = document.getElementById('posSubtotal');
-    var tenderedEl = document.getElementById('posTendered');
-    var changeEl = document.getElementById('posChange');
+    var totalEl = document.getElementById('posTotal');
+    var taxLinesEl = document.getElementById('posTaxLines');
+    var paymentMethodsEl = document.getElementById('posPaymentMethods');
+    var paidTotalEl = document.getElementById('posPaidTotal');
+    var dueTotalEl = document.getElementById('posDueTotal');
     var countEl = document.getElementById('posResultCount');
     var clearBtn = document.getElementById('posClear');
     var completeBtn = document.getElementById('posComplete');
+    var addPaymentBtn = document.getElementById('posAddPayment');
     var baseUrl = document.body.dataset.baseUrl || '';
+    var paymentRowCounter = 0;
 
     function money(value) {
         return '₱ ' + Number(value || 0).toFixed(2);
@@ -103,11 +116,22 @@
         }).join('');
     }
 
+    function subtotal() {
+        return cart.reduce(function (sum, line) { return sum + line.price * line.qty; }, 0);
+    }
+
+    function totalPaid() {
+        return paymentRows.reduce(function (sum, r) { return sum + parseFloat(r.amount || 0); }, 0);
+    }
+
     function renderCart() {
         if (!cart.length) {
             cartEl.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-3">Cart is empty.</td></tr>';
-            subtotalEl.textContent = '₱ 0.00';
-            recalcChange();
+            subtotalEl.textContent = money(0);
+            totalEl.textContent = money(0);
+            taxLinesEl.style.display = 'none';
+            taxLinesEl.innerHTML = '';
+            updatePaymentUI();
             return;
         }
 
@@ -128,17 +152,143 @@
                 '</tr>';
         }).join('');
 
-        subtotalEl.textContent = money(subtotal());
-        recalcChange();
+        var sub = subtotal();
+        subtotalEl.textContent = money(sub);
+        updatePaymentUI();
     }
 
-    function subtotal() {
-        return cart.reduce(function (sum, line) { return sum + line.price * line.qty; }, 0);
+    function updatePaymentUI() {
+        var sub = subtotal();
+
+        //Fetch tax rates from server (simplified: assume 12% VAT for now, but we'll get from sale response)
+        //For now, show estimated tax
+        var taxRate = 0.12; //Default VAT
+        var taxAmount = round(sub * taxRate, 2);
+        var total = round(sub + taxAmount, 2);
+
+        totalEl.textContent = money(total);
+
+        //Show tax breakdown
+        taxLinesEl.style.display = 'block';
+        taxLinesEl.innerHTML = '<div class="d-flex justify-content-between small text-muted">' +
+            '<span>VAT (12%)</span>' +
+            '<span>' + money(taxAmount) + '</span>' +
+            '</div>';
+
+        dueTotalEl.textContent = money(total);
+        paidTotalEl.textContent = money(totalPaid());
+
+        //Enable complete button if payment covers total
+        var paid = totalPaid();
+        completeBtn.disabled = (cart.length === 0) || (paid + 0.009 < total); //Small epsilon
+
+        //Render payment method rows
+        if (!paymentRows.length) {
+            //Add default cash row
+            addPaymentRow('cash', total);
+        }
+
+        paymentMethodsEl.innerHTML = paymentRows.map(function (r, i) {
+            var method = paymentMethods.find(function (m) { return m.code === r.code; });
+            var methodName = method ? method.name : r.code;
+            var requiresRef = method ? method.requires_ref : false;
+
+            return '<div class="row g-2 mb-2 payment-row" data-row-id="' + r.rowId + '">' +
+                '<div class="col-5">' +
+                    '<select class="form-select form-select-sm method-select" data-row-id="' + r.rowId + '" required>' +
+                        paymentMethods.map(function (m) {
+                            return '<option value="' + m.code + '"' + (m.code === r.code ? ' selected' : '') + '>' + escapeHtml(m.name) + '</option>';
+                        }).join('') +
+                    '</select>' +
+                '</div>' +
+                '<div class="col-4">' +
+                    '<input type="number" class="form-control form-control-sm amount-input" data-row-id="' + r.rowId + '" step="0.01" min="0" value="' + r.amount + '" required>' +
+                '</div>' +
+                (requiresRef ? '<div class="col-3">' +
+                    '<input type="text" class="form-control form-control-sm ref-input" data-row-id="' + r.rowId + '" placeholder="Reference #">' +
+                '</div>' : '<div class="col-3"></div>') +
+                '<div class="col-auto">' +
+                    '<button type="button" class="btn btn-sm btn-outline-danger remove-payment" data-row-id="' + r.rowId + '"' + (paymentRows.length === 1 ? ' disabled' : '') + '><i class="bi bi-trash"></i></button>' +
+                '</div>' +
+            '</div>';
+        }).join('');
+
+        //Attach listeners to new elements
+        attachPaymentListeners();
     }
 
-    function recalcChange() {
-        var tendered = parseFloat(tenderedEl.value) || 0;
-        changeEl.value = money(tendered - subtotal());
+    function addPaymentRow(code, amount) {
+        var rowId = ++paymentRowCounter;
+        paymentRows.push({
+            rowId: rowId,
+            method_id: paymentMethods.find(function (m) { return m.code === code; })?.id || 0,
+            code: code,
+            amount: amount || 0,
+            reference: ''
+        });
+    }
+
+    function removePaymentRow(rowId) {
+        var idx = paymentRows.findIndex(function (r) { return r.rowId === rowId; });
+        if (idx !== -1) {
+            paymentRows.splice(idx, 1);
+        }
+    }
+
+    function updatePaymentRow(rowId, field, value) {
+        var row = paymentRows.find(function (r) { return r.rowId === rowId; });
+        if (row) {
+            row[field] = value;
+        }
+    }
+
+    function attachPaymentListeners() {
+        //Method select
+        document.querySelectorAll('.method-select').forEach(function (sel) {
+            sel.onchange = function () {
+                var rowId = parseInt(this.dataset.rowId, 10);
+                var code = this.value;
+                var method = paymentMethods.find(function (m) { return m.code === code; });
+                var row = paymentRows.find(function (r) { return r.rowId === rowId; });
+                if (row) {
+                    row.code = code;
+                    row.method_id = method ? method.id : 0;
+                    //Update reference field visibility
+                    var refContainer = this.closest('.payment-row').querySelector('.ref-input');
+                    if (refContainer) {
+                        refContainer.style.display = method && method.requires_ref ? 'block' : 'none';
+                    }
+                }
+                updatePaymentUI(); //Re-render to show/hide ref field
+            };
+        });
+
+        //Amount input
+        document.querySelectorAll('.amount-input').forEach(function (inp) {
+            inp.oninput = function () {
+                var rowId = parseInt(this.dataset.rowId, 10);
+                updatePaymentRow(rowId, 'amount', parseFloat(this.value) || 0);
+                updatePaymentUI();
+            };
+        });
+
+        //Reference input
+        document.querySelectorAll('.ref-input').forEach(function (inp) {
+            inp.oninput = function () {
+                var rowId = parseInt(this.dataset.rowId, 10);
+                updatePaymentRow(rowId, 'reference', this.value);
+            };
+        });
+
+        //Remove button
+        document.querySelectorAll('.remove-payment').forEach(function (btn) {
+            btn.onclick = function () {
+                if (paymentRows.length <= 1) return;
+                var rowId = parseInt(this.dataset.rowId, 10);
+                removePaymentRow(rowId);
+                updatePaymentUI();
+            };
+        });
     }
 
     function add(partId, qty) {
@@ -180,11 +330,15 @@
     }
 
     function complete() {
-        var tendered = parseFloat(tenderedEl.value) || 0;
-        var total = subtotal();
-
         if (!cart.length) { alert('The sale cart is empty.'); return; }
-        if (tendered < total) { alert('Tendered amount is less than the total.'); return; }
+
+        var sub = subtotal();
+        var taxRate = 0.12;
+        var taxAmount = round(sub * taxRate, 2);
+        var total = round(sub + taxAmount, 2);
+        var paid = totalPaid();
+
+        if (paid + 0.009 < total) { alert('Total paid amount is less than the total due.'); return; }
 
         completeBtn.disabled = true;
         completeBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
@@ -192,7 +346,14 @@
         var body = window.CSRF ? window.CSRF.appendTo('') : '';
         var params = new URLSearchParams();
         params.append('items', JSON.stringify(cart.map(function (l) { return { part_id: l.part_id, qty: l.qty }; })));
-        params.append('tendered', String(tendered));
+        params.append('payment_methods', JSON.stringify(paymentRows.map(function (r) {
+            return {
+                method_id: r.method_id,
+                code: r.code,
+                amount: r.amount,
+                reference: r.reference || null
+            };
+        })));
         var payload = params.toString() + (body ? '&' + body : '');
 
         fetch(baseUrl + 'pos/complete', {
@@ -209,9 +370,9 @@
 
                 showReceipt(data);
                 cart = [];
+                paymentRows = [];
                 renderCart();
                 renderProducts();
-                tenderedEl.value = '';
             })
             .catch(function () {
                 completeBtn.disabled = false;
@@ -222,22 +383,37 @@
 
     function showReceipt(data) {
         var body = document.getElementById('posReceiptBody');
+        var pmHtml = (data.payment_methods || []).map(function (pm) {
+            return '<div class="d-flex justify-content-between small">' +
+                '<span>' + escapeHtml(pm.code.toUpperCase()) + (pm.reference ? ' (' + escapeHtml(pm.reference) + ')' : '') + '</span>' +
+                '<span>' + money(pm.amount) + '</span>' +
+                '</div>';
+        }).join('');
+
         body.innerHTML = '<div class="text-center">' +
             '<i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>' +
             '<h6 class="mt-2 mb-0">' + data.receipt + '</h6>' +
             '</div>' +
             '<hr>' +
-            '<div class="d-flex justify-content-between"><span>Total</span><strong>' + money(data.total) + '</strong></div>' +
-            '<div class="d-flex justify-content-between"><span>Tendered</span><span>' + money(data.tendered) + '</span></div>' +
-            '<div class="d-flex justify-content-between"><span>Change</span><span>' + money(data.change) + '</span></div>';
+            '<div class="d-flex justify-content-between"><span>Subtotal</span><span>' + money(data.subtotal) + '</span></div>' +
+            (data.tax_total ? '<div class="d-flex justify-content-between"><span>Tax</span><span>' + money(data.tax_total) + '</span></div>' : '') +
+            '<div class="d-flex justify-content-between fw-bold"><span>Total</span><span>' + money(data.total) + '</span></div>' +
+            '<hr>' +
+            '<div class="small text-muted">Payment Methods</div>' + pmHtml +
+            '<hr>' +
+            '<div class="d-flex justify-content-between"><span>Change</span><span>' + money(data.change || 0) + '</span></div>';
 
         bootstrap.Modal.getOrCreateInstance(document.getElementById('posReceiptModal')).show();
     }
 
     function escapeHtml(str) {
         return String(str == null ? '' : str).replace(/[&<>"']/g, function (c) {
-            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            return { '&': '&', '<': '<', '>': '>', '"': '"', "'": ''' }[c];
         });
+    }
+
+    function round(value, decimals) {
+        return Number(Math.round(value + 'e' + decimals) + 'e-' + decimals);
     }
 
     function populateCategories() {
@@ -258,9 +434,9 @@
         categoryEl.addEventListener('change', renderProducts);
         sortEl.addEventListener('change', renderProducts);
         hideOosEl.addEventListener('change', renderProducts);
-        tenderedEl.addEventListener('input', recalcChange);
-        clearBtn.addEventListener('click', function () { cart = []; renderCart(); renderProducts(); });
+        clearBtn.addEventListener('click', function () { cart = []; paymentRows = []; renderCart(); renderProducts(); });
         completeBtn.addEventListener('click', complete);
+        addPaymentBtn.addEventListener('click', function () { addPaymentRow('cash', 0); updatePaymentUI(); });
 
         listEl.addEventListener('click', function (e) {
             var btn = e.target.closest('[data-add]');

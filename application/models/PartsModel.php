@@ -145,4 +145,98 @@ class PartsModel extends CI_Model {
 
         return $query->row_array();
     }
+
+    //----------------------------------------------------------------------
+    // Stock Movements
+    //----------------------------------------------------------------------
+
+    //Records a stock movement.
+    //delta: positive for increase, negative for decrease
+    //reason: sale, adjustment, receive, repair_use, return, count, write_off
+    public function recordStockMovement($part_id, $delta, $reason, $reference_type = NULL, $reference_id = NULL, $employee_id = NULL, $note = NULL) {
+        if ($delta === 0) {
+            return TRUE; //No movement needed
+        }
+
+        $movement = [
+            'part_id' => $part_id,
+            'qty_delta' => (int) $delta,
+            'reason' => $reason,
+            'reference_type' => $reference_type,
+            'reference_id' => $reference_id,
+            'employee_id' => $employee_id,
+            'note' => $note,
+        ];
+
+        return $this->db->insert('tbl_stock_movements', $movement);
+    }
+
+    //Adjusts stock by a delta amount and records the movement.
+    //Returns the new stock quantity.
+    public function adjustStock($part_id, $delta, $reason, $reference_type = NULL, $reference_id = NULL, $employee_id = NULL, $note = NULL) {
+        if ($delta === 0) {
+            return $this->getPartById($part_id)['stock_quantity'];
+        }
+
+        $part = $this->getPartById($part_id);
+        $newQty = (int) $part['stock_quantity'] + (int) $delta;
+
+        if ($newQty < 0) {
+            throw new AppException('D02', ['item' => $part['part_name']]);
+        }
+
+        $this->db->trans_start();
+
+        $this->db->where('part_id', $part_id);
+        $this->db->update('tbl_sku', ['stock_quantity' => $newQty]);
+
+        $this->recordStockMovement($part_id, $delta, $reason, $reference_type, $reference_id, $employee_id, $note);
+
+        $this->db->trans_complete();
+
+        if ($this->db->trans_status() === FALSE) {
+            throw new AppException('Q14');
+        }
+
+        return $newQty;
+    }
+
+    //Gets stock movements for a part.
+    public function getStockMovements($part_id, $limit = 100) {
+        $this->db->where('part_id', $part_id);
+        $this->db->order_by('created_at', 'DESC');
+        $this->db->limit($limit);
+        $query = $this->db->get('tbl_stock_movements');
+        if (!$query) {
+            throw new AppException('Q14');
+        }
+        return $query->result_array();
+    }
+
+    //Gets all stock movements with filters.
+    public function getAllStockMovements($filters = [], $limit = 200) {
+        if (!empty($filters['part_id'])) {
+            $this->db->where('part_id', $filters['part_id']);
+        }
+        if (!empty($filters['reason'])) {
+            $this->db->where('reason', $filters['reason']);
+        }
+        if (!empty($filters['employee_id'])) {
+            $this->db->where('employee_id', $filters['employee_id']);
+        }
+        if (!empty($filters['date_from'])) {
+            $this->db->where('created_at >=', $filters['date_from']);
+        }
+        if (!empty($filters['date_to'])) {
+            $this->db->where('created_at <=', $filters['date_to'] . ' 23:59:59');
+        }
+
+        $this->db->order_by('created_at', 'DESC');
+        $this->db->limit($limit);
+        $query = $this->db->get('tbl_stock_movements');
+        if (!$query) {
+            throw new AppException('Q14');
+        }
+        return $query->result_array();
+    }
 }

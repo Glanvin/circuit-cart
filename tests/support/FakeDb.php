@@ -50,6 +50,18 @@ class FakeDb {
 		return $this;
 	}
 
+	public function order_by($field, $direction = 'ASC') {
+		return $this;
+	}
+
+	public function select($field) {
+		return $this;
+	}
+
+	public function distinct() {
+		return $this;
+	}
+
 	public function insert($table, $data) {
 		$this->lastInsertTable = $table;
 		$this->lastInsertData  = $data;

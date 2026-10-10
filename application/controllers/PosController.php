@@ -12,9 +12,11 @@ class PosController extends MY_Controller {
 	public function index()
 	{
 		$parts = [];
+		$payment_methods = [];
 
 		try {
 			$parts = $this->PartsModel->getAllParts();
+			$payment_methods = $this->SalesModel->getActivePaymentMethods();
 		} catch (AppException $e) {
 			$this->toastify->error($e->toToast());
 		}
@@ -22,17 +24,18 @@ class PosController extends MY_Controller {
 		$this->render('pages/pos/pos', [
 			'title' => 'Point of Sale',
 			'parts' => $parts,
+			'payment_methods' => $payment_methods,
 		]);
 	}
 
 	//Completes a store sale. The client submits item lines [{part_id, qty}]
-	//plus the cash tendered; prices and totals are computed server-side.
+	//and payment_methods [{method_id, code, amount, reference}]; prices and totals are computed server-side.
 	public function complete()
 	{
 		$this->output->set_content_type('application/json');
 
-		$tendered = (float) $this->input->post('tendered', true);
 		$raw = $this->input->post('items', true);
+		$payment_methods_raw = $this->input->post('payment_methods', true);
 
 		if ($raw === NULL || !is_string($raw)) {
 			$this->output->set_output(json_encode([
@@ -50,21 +53,37 @@ class PosController extends MY_Controller {
 			return;
 		}
 
+		$payment_methods = [];
+		if ($payment_methods_raw !== NULL && is_string($payment_methods_raw)) {
+			$payment_methods = json_decode($payment_methods_raw, true) ?? [];
+		}
+
 		try {
 			$sale = $this->SalesModel->recordSale([
 				'origin' => 'store',
 				'sold_by' => (string) $this->session->userdata('employee_name'),
+				'employee_id' => (int) $this->session->userdata('employee_id'),
 				'items' => $items,
-				'tendered' => $tendered,
+				'payment_methods' => $payment_methods,
 			]);
+
+			//Calculate change (cash overpayment)
+			$cash_paid = 0.0;
+			foreach ($sale['payment_methods'] as $pm) {
+				if ($pm['code'] === 'cash') {
+					$cash_paid += (float) $pm['amount'];
+				}
+			}
+			$change = round($cash_paid - $sale['total'], 2);
 
 			$this->output->set_output(json_encode([
 				'ok' => true,
 				'receipt' => $sale['receipt_no'],
 				'subtotal' => $sale['subtotal'],
+				'tax_total' => $sale['tax_total'],
 				'total' => $sale['total'],
-				'tendered' => $tendered,
-				'change' => round($tendered - $sale['total'], 2),
+				'payment_methods' => $sale['payment_methods'],
+				'change' => max(0, $change),
 			]));
 		}catch(AppException $e) {
 			$this->output->set_output(json_encode([

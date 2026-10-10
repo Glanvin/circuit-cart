@@ -82,13 +82,16 @@ class ControllerErrorPathsTest extends TestCase {
 		$this->session->set_userdata('employee_id', 1);
 		$this->session->set_userdata('employee_name', 'Alice Admin');
 		$this->session->set_userdata('employee_role', 'admin');
-		$this->db->rows = [['part_id' => 1, 'sku' => 'ABC-1', 'stock_quantity' => 5]];
+		$this->db->rows = [
+			['part_id' => 1, 'sku' => 'ABC-1', 'stock_quantity' => 5, 'category' => 'Screen', 'device_type' => 'Smartphone'],
+			['part_id' => 2, 'sku' => 'XYZ-2', 'stock_quantity' => 10, 'category' => 'Battery', 'device_type' => 'Laptop'],
+		];
 
 		$c = make_my_controller(StockController::class, $this->session, $this->toastify, $this->db, $this->loader);
 		$c->index();
 
 		$data = $this->pageData('pages/inventory/stock_table');
-		$this->assertCount(1, $data['parts']);
+		$this->assertCount(2, $data['parts']);
 		$this->assertSame('ABC-1', $data['parts'][0]['sku']);
 	}
 
@@ -112,7 +115,7 @@ class ControllerErrorPathsTest extends TestCase {
 		$this->session->set_userdata('employee_role', 'admin');
 		$c = make_my_controller(StockController::class, $this->session, $this->toastify, $this->db, $this->loader);
 
-		$c->addStock();
+		$c->addStock(1);
 		$c->newSKU();
 
 		$this->assertTrue(TRUE);

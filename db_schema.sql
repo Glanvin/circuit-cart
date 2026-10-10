@@ -82,9 +82,39 @@ CREATE TABLE IF NOT EXISTS tbl_employees (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ---------------------------------------------------------------------------
+-- Payment methods. Configurable tender types for POS.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS tbl_payment_methods (
+    id              INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    name            VARCHAR(50)  NOT NULL,
+    code            VARCHAR(20)  NOT NULL,
+    requires_ref    TINYINT(1)   NOT NULL DEFAULT 0,
+    is_active       TINYINT(1)   NOT NULL DEFAULT 1,
+    sort_order      INT UNSIGNED NOT NULL DEFAULT 0,
+    created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY code (code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------------------------
+-- Tax rates. Configurable tax rates for store/online/both.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS tbl_tax_rates (
+    id              INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    name            VARCHAR(50)  NOT NULL,
+    rate_percent    DECIMAL(5,2) NOT NULL,
+    applies_to      ENUM('store','online','both') NOT NULL DEFAULT 'both',
+    is_active       TINYINT(1)   NOT NULL DEFAULT 1,
+    created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------------------------
 -- Sales / transactions. Store (POS) sales always count toward totals.
 -- Online sales only count when status = 'delivered'.
--- sold_by holds the employee's full name (sales have no employee_id FK).
+-- sold_by holds the employee's full name.
+-- payment_methods stores JSON array of [{method_id, amount, reference}]
+-- tax_breakdown stores JSON array of [{tax_id, name, rate, amount}]
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS tbl_sales (
     id               INT UNSIGNED  NOT NULL AUTO_INCREMENT,
@@ -92,15 +122,20 @@ CREATE TABLE IF NOT EXISTS tbl_sales (
     origin           ENUM('store','online') NOT NULL,
     status           ENUM('processing','shipped','delivered','cancelled') NOT NULL DEFAULT 'processing',
     sold_by          VARCHAR(20)   NULL,
+    employee_id      INT UNSIGNED  NULL,
     customer_email   VARCHAR(255)  NULL,
     customer_address VARCHAR(255)  NULL,
     items            JSON          NULL,
     subtotal         DECIMAL(10,2) NOT NULL DEFAULT 0,
+    tax_total        DECIMAL(10,2) NOT NULL DEFAULT 0,
     total            DECIMAL(10,2) NOT NULL DEFAULT 0,
-    tendered         DECIMAL(10,2) NULL,
+    payment_methods  JSON          NULL,
+    tax_breakdown    JSON          NULL,
     created_at       TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    UNIQUE KEY receipt_no (receipt_no)
+    UNIQUE KEY receipt_no (receipt_no),
+    KEY employee_id (employee_id),
+    CONSTRAINT fk_sales_employee FOREIGN KEY (employee_id) REFERENCES tbl_employees(employee_id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ---------------------------------------------------------------------------
@@ -118,6 +153,56 @@ CREATE TABLE IF NOT EXISTS tbl_booking (
     images         JSON         NULL,
     created_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------------------------
+-- Appointment slots. Defines available booking windows per day.
+-- capacity = how many bookings can be accepted for this slot.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS tbl_appointment_slots (
+    id             INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    slot_date      DATE         NOT NULL,
+    start_time     TIME         NOT NULL,
+    end_time       TIME         NOT NULL,
+    capacity       INT UNSIGNED NOT NULL DEFAULT 1,
+    is_active      TINYINT(1)   NOT NULL DEFAULT 1,
+    created_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY unique_slot (slot_date, start_time, end_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ---------------------------------------------------------------------------
+-- Repair jobs. Created when a booking is approved/finished, tracks the full
+-- repair workflow: diagnosis, estimate, approval, parts, labor, status.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS tbl_repair_jobs (
+    id                  INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    job_reference       VARCHAR(32)  NOT NULL,
+    booking_id          INT UNSIGNED NOT NULL,
+    technician_id       INT UNSIGNED NULL,
+    device              VARCHAR(128) NOT NULL,
+    issue               TEXT         NOT NULL,
+    diagnosis           TEXT         NULL,
+    estimate_total      DECIMAL(10,2) NULL,
+    estimate_approved   TINYINT(1)   NOT NULL DEFAULT 0,
+    estimate_approved_at TIMESTAMP   NULL,
+    parts_used          JSON         NULL,
+    labor_items         JSON         NULL,
+    technician_notes    TEXT         NULL,
+    status              ENUM('diagnosis','estimate_pending','approved','in_progress','ready_for_pickup','completed','cancelled') NOT NULL DEFAULT 'diagnosis',
+    status_history      JSON         NULL,
+    started_at          TIMESTAMP    NULL,
+    completed_at        TIMESTAMP    NULL,
+    picked_up_at        TIMESTAMP    NULL,
+    created_at          TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at          TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY job_reference (job_reference),
+    KEY booking_id (booking_id),
+    KEY technician_id (technician_id),
+    KEY status (status),
+    CONSTRAINT fk_repair_job_booking FOREIGN KEY (booking_id) REFERENCES tbl_booking(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_repair_job_technician FOREIGN KEY (technician_id) REFERENCES tbl_employees(employee_id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- ---------------------------------------------------------------------------
@@ -198,3 +283,79 @@ VALUES
         selling_price   = VALUES(selling_price),
         compatibility   = VALUES(compatibility),
         technical_specs = VALUES(technical_specs);
+
+-- ---------------------------------------------------------------------------
+-- Default appointment slots (next 30 weekdays, 9:00-17:00, 1-hour slots, capacity 2)
+-- ---------------------------------------------------------------------------
+-- Note: This is a sample seed. In production, use the admin UI to manage slots.
+INSERT INTO tbl_appointment_slots (slot_date, start_time, end_time, capacity, is_active)
+SELECT
+    d.slot_date,
+    t.start_time,
+    t.end_time,
+    2,
+    1
+FROM (
+    SELECT DATE_ADD(CURDATE(), INTERVAL seq DAY) AS slot_date
+    FROM (
+        SELECT 0 AS seq UNION ALL SELECT 1 UNION ALL SELECT 2 UNION ALL SELECT 3 UNION ALL SELECT 4
+        UNION ALL SELECT 5 UNION ALL SELECT 6 UNION ALL SELECT 7 UNION ALL SELECT 8 UNION ALL SELECT 9
+        UNION ALL SELECT 10 UNION ALL SELECT 11 UNION ALL SELECT 12 UNION ALL SELECT 13 UNION ALL SELECT 14
+        UNION ALL SELECT 15 UNION ALL SELECT 16 UNION ALL SELECT 17 UNION ALL SELECT 18 UNION ALL SELECT 19
+        UNION ALL SELECT 20 UNION ALL SELECT 21 UNION ALL SELECT 22 UNION ALL SELECT 23 UNION ALL SELECT 24
+        UNION ALL SELECT 25 UNION ALL SELECT 26 UNION ALL SELECT 27 UNION ALL SELECT 28 UNION ALL SELECT 29
+    ) AS days
+) AS d
+JOIN (
+    SELECT '09:00:00' AS start_time, '10:00:00' AS end_time UNION ALL
+    SELECT '10:00:00', '11:00:00' UNION ALL
+    SELECT '11:00:00', '12:00:00' UNION ALL
+    SELECT '13:00:00', '14:00:00' UNION ALL
+    SELECT '14:00:00', '15:00:00' UNION ALL
+    SELECT '15:00:00', '16:00:00' UNION ALL
+    SELECT '16:00:00', '17:00:00'
+) AS t
+WHERE DAYOFWEEK(d.slot_date) BETWEEN 2 AND 6  -- Monday=2 to Friday=6
+ON DUPLICATE KEY UPDATE capacity = VALUES(capacity), is_active = VALUES(is_active);
+
+-- ---------------------------------------------------------------------------
+-- Default payment methods
+-- ---------------------------------------------------------------------------
+INSERT INTO tbl_payment_methods (name, code, requires_ref, is_active, sort_order) VALUES
+    ('Cash', 'cash', 0, 1, 1),
+    ('Credit/Debit Card', 'card', 1, 1, 2),
+    ('GCash', 'gcash', 1, 1, 3),
+    ('Bank Transfer', 'bank', 1, 1, 4),
+    ('Gift Card', 'giftcard', 1, 1, 5)
+ON DUPLICATE KEY UPDATE name = VALUES(name), is_active = VALUES(is_active), sort_order = VALUES(sort_order);
+
+-- ---------------------------------------------------------------------------
+-- Default tax rates (Philippines VAT 12%)
+-- ---------------------------------------------------------------------------
+INSERT INTO tbl_tax_rates (name, rate_percent, applies_to, is_active) VALUES
+    ('VAT 12%', 12.00, 'both', 1)
+ON DUPLICATE KEY UPDATE rate_percent = VALUES(rate_percent), is_active = VALUES(is_active);
+
+-- ---------------------------------------------------------------------------
+-- Stock movements. Audit trail for all inventory changes.
+-- reason: sale, adjustment, receive, repair_use, return, count, write_off
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS tbl_stock_movements (
+    id              INT UNSIGNED NOT NULL AUTO_INCREMENT,
+    part_id         INT UNSIGNED NOT NULL,
+    qty_delta       INT          NOT NULL,
+    reason          ENUM('sale','adjustment','receive','repair_use','return','count','write_off') NOT NULL,
+    reference_type  ENUM('sale','purchase_order','repair_job','adjustment','return','stock_count') NULL,
+    reference_id    INT UNSIGNED NULL,
+    employee_id     INT UNSIGNED NULL,
+    note            TEXT         NULL,
+    created_at      TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY part_id (part_id),
+    KEY reason (reason),
+    KEY reference (reference_type, reference_id),
+    KEY employee_id (employee_id),
+    KEY created_at (created_at),
+    CONSTRAINT fk_stock_movement_part FOREIGN KEY (part_id) REFERENCES tbl_sku(part_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_stock_movement_employee FOREIGN KEY (employee_id) REFERENCES tbl_employees(employee_id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
