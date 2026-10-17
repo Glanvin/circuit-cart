@@ -84,8 +84,8 @@
                     <?php endif; ?>
                 </p>
                 <div class="d-flex flex-wrap gap-2 mb-4">
-                    <a href="<?= site_url('cart/buy/' . $part['part_id']) ?>" class="btn btn-warning btn-lg px-4">Buy now</a>
-                    <a href="<?= site_url('cart/add/' . $part['part_id']) ?>" class="btn btn-primary btn-lg px-4"><i class="bi bi-cart-plus me-1" aria-hidden="true"></i>Add to cart</a>
+                    <a href="<?= site_url('cart/buy/' . $part['part_id']) ?>" class="btn btn-primary btn-lg px-4">Buy now</a>
+                    <a href="<?= site_url('cart/add/' . $part['part_id']) ?>" class="btn btn-outline-primary btn-lg px-4"><i class="bi bi-cart-plus me-1" aria-hidden="true"></i>Add to cart</a>
                     <?php if ($this->session->userdata('username')): ?>
                         <?php $isSaved = in_array((int) $part['part_id'], $wishlist_ids ?? [], true); ?>
                         <?= form_open('wishlist/toggle/' . $part['part_id'], ['class' => 'd-inline']) ?>
