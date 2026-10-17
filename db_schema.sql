@@ -880,8 +880,12 @@ VALUES
 ON DUPLICATE KEY UPDATE id = id;
 
 -- ---------------------------------------------------------------------------
--- Demo product reviews. order_verified mirrors what the app computes from the
--- demo customer's delivered online orders (parts 100006 and 100015).
+-- Demo product reviews. Every catalog item ships with reviews (5-10 each) so
+-- product pages have ratings and feedback out of the box. order_verified is a
+-- stored flag the app normally computes from delivered online orders: it is
+-- real for the demo customer's own parts (100006, 100015) and a scattered
+-- subset of the sample reviewers is marked verified for badge variety. All
+-- rows are published. Ids are fixed so re-runs are a no-op.
 -- ---------------------------------------------------------------------------
 INSERT INTO tbl_product_reviews
     (id, part_id, username, rating, title, body, status, order_verified, created_at)
@@ -889,7 +893,168 @@ VALUES
     (1, 100006, 'demo', 5, 'Flawless replacement panel', 'Brightness and touch feel identical to the original; installation was straightforward.', 'published', 1, DATE_SUB(NOW(), INTERVAL 1 DAY)),
     (2, 100015, 'demo', 4, 'Solid replacement battery', 'Holds a full day of use again. Only wish it shipped with the tools.', 'published', 1, DATE_SUB(NOW(), INTERVAL 6 DAY)),
     (3, 100017, 'demo', 5, 'Stick drift is gone', 'Installed these on my Steam Deck and the drift disappeared completely.', 'published', 0, DATE_SUB(NOW(), INTERVAL 9 DAY)),
-    (4, 100009, 'juan', 3, 'Good panel, slow delivery', 'The screen works well but shipping took longer than expected.', 'published', 0, DATE_SUB(NOW(), INTERVAL 6 DAY))
+    (4, 100009, 'juan', 3, 'Good panel, slow delivery', 'The screen works well but shipping took longer than expected.', 'published', 0, DATE_SUB(NOW(), INTERVAL 6 DAY)),
+
+    -- 100001 iPhone 11 LCD display
+    (5, 100001, 'miguel', 5, 'Great budget screen', 'Colors and brightness match the original for a very fair price. Would order again.', 'published', 1, DATE_SUB(NOW(), INTERVAL 40 DAY)),
+    (6, 100001, 'ana', 5, 'Perfect fit, no dead pixels', 'Dropped in cleanly on my iPhone 11 and the touch response is spot on.', 'published', 1, DATE_SUB(NOW(), INTERVAL 35 DAY)),
+    (7, 100001, 'carlo', 4, 'Good quality for the price', 'Slight difference in max brightness but nothing noticeable day to day.', 'published', 0, DATE_SUB(NOW(), INTERVAL 28 DAY)),
+    (8, 100001, 'liza', 5, 'Looks original', 'Hard to tell it apart from the screen I replaced. Very happy with it.', 'published', 1, DATE_SUB(NOW(), INTERVAL 20 DAY)),
+    (9, 100001, 'paolo', 3, 'Works but a bit dim', 'Installed fine and everything works, just a little dimmer outdoors.', 'published', 0, DATE_SUB(NOW(), INTERVAL 14 DAY)),
+    (10, 100001, 'grace', 5, 'Fast delivery', 'Arrived well packed in bubble wrap and installed without issues.', 'published', 0, DATE_SUB(NOW(), INTERVAL 7 DAY)),
+
+    -- 100002 iPhone 12 / 13 OLED display
+    (11, 100002, 'mark', 5, 'OLED looks fantastic', 'Deep blacks and vivid colors, a big step up from the old panel.', 'published', 1, DATE_SUB(NOW(), INTERVAL 55 DAY)),
+    (12, 100002, 'bea', 5, 'True to description', 'Matched my iPhone 13 perfectly and True Tone works as expected.', 'published', 1, DATE_SUB(NOW(), INTERVAL 48 DAY)),
+    (13, 100002, 'diana', 4, 'Solid replacement', 'Good screen overall, minor ghosting in the first hour then it settled.', 'published', 0, DATE_SUB(NOW(), INTERVAL 41 DAY)),
+    (14, 100002, 'eric', 5, 'No more cracked screen', 'Replacement was straightforward and the glass feels premium.', 'published', 1, DATE_SUB(NOW(), INTERVAL 33 DAY)),
+    (15, 100002, 'faith', 4, 'Bright and sharp', 'Very pleased with the clarity, though shipping took a few days.', 'published', 0, DATE_SUB(NOW(), INTERVAL 26 DAY)),
+    (16, 100002, 'ivan', 2, 'Arrived with a scratch', 'The panel itself works but there was a small scratch on arrival.', 'published', 0, DATE_SUB(NOW(), INTERVAL 19 DAY)),
+    (17, 100002, 'jasmine', 5, 'Highly recommend', 'Brightness and touch are excellent, no complaints after two weeks.', 'published', 1, DATE_SUB(NOW(), INTERVAL 11 DAY)),
+    (18, 100002, 'kevin', 5, 'Great value OLED', 'Cheaper than the service center quoted and works flawlessly.', 'published', 0, DATE_SUB(NOW(), INTERVAL 4 DAY)),
+
+    -- 100003 iPhone 14 Pro Max battery
+    (19, 100003, 'lorna', 5, 'Battery like new', 'Back to a full day of heavy use. Capacity reports as expected.', 'published', 1, DATE_SUB(NOW(), INTERVAL 50 DAY)),
+    (20, 100003, 'marvin', 5, 'Easy swap', 'Healthy replacement cell, no overheating after a week of use.', 'published', 1, DATE_SUB(NOW(), INTERVAL 44 DAY)),
+    (21, 100003, 'nina', 4, 'Good battery', 'Holds charge well, only four stars because it shipped slowly.', 'published', 0, DATE_SUB(NOW(), INTERVAL 37 DAY)),
+    (22, 100003, 'oscar', 5, 'Fixed my dying battery', 'Phone no longer shuts down at twenty percent. Very satisfied.', 'published', 1, DATE_SUB(NOW(), INTERVAL 30 DAY)),
+    (23, 100003, 'patricia', 3, 'Decent but average', 'Works fine so far but capacity feels a touch lower than advertised.', 'published', 0, DATE_SUB(NOW(), INTERVAL 22 DAY)),
+    (24, 100003, 'quincy', 5, 'Genuine feel', 'Installed cleanly and the phone behaves like new again.', 'published', 1, DATE_SUB(NOW(), INTERVAL 13 DAY)),
+    (25, 100003, 'rose', 4, 'Reliable so far', 'Two weeks in and the battery health is holding steady.', 'published', 0, DATE_SUB(NOW(), INTERVAL 6 DAY)),
+
+    -- 100004 iPhone 15 Pro OLED display
+    (26, 100004, 'samuel', 5, 'ProMotion works', 'High refresh rate still smooth after the swap, colors are accurate.', 'published', 1, DATE_SUB(NOW(), INTERVAL 46 DAY)),
+    (27, 100004, 'trisha', 5, 'Premium quality', 'The panel feels and looks like the genuine part.', 'published', 1, DATE_SUB(NOW(), INTERVAL 38 DAY)),
+    (28, 100004, 'ulysses', 4, 'Good, slightly pricey', 'Excellent screen but it is one of the pricier options.', 'published', 0, DATE_SUB(NOW(), INTERVAL 29 DAY)),
+    (29, 100004, 'vera', 5, 'Perfect match', 'True Tone and auto brightness both work correctly.', 'published', 1, DATE_SUB(NOW(), INTERVAL 17 DAY)),
+    (30, 100004, 'wesley', 3, 'Works but took time', 'Installation was fiddly and I needed a guide, but it works now.', 'published', 0, DATE_SUB(NOW(), INTERVAL 9 DAY)),
+
+    -- 100005 iPhone 16 rear camera
+    (31, 100005, 'xander', 5, 'Camera sharp again', 'Photos are crisp and stabilisation works normally after fitting this module.', 'published', 1, DATE_SUB(NOW(), INTERVAL 42 DAY)),
+    (32, 100005, 'yasmin', 5, 'Crystal clear shots', 'Low light photos are back to normal. Very happy.', 'published', 1, DATE_SUB(NOW(), INTERVAL 34 DAY)),
+    (33, 100005, 'zara', 4, 'Good module', 'Focus is fast and accurate, minor delay on the first shot.', 'published', 0, DATE_SUB(NOW(), INTERVAL 27 DAY)),
+    (34, 100005, 'noel', 5, 'OEM quality', 'Looks and performs like the original camera.', 'published', 1, DATE_SUB(NOW(), INTERVAL 18 DAY)),
+    (35, 100005, 'cindy', 4, 'Fixed the blur', 'No more cloudy photos, focus locks quickly now.', 'published', 0, DATE_SUB(NOW(), INTERVAL 12 DAY)),
+    (36, 100005, 'danilo', 5, 'Great purchase', 'Well packed, worked the first time I powered it on.', 'published', 0, DATE_SUB(NOW(), INTERVAL 5 DAY)),
+
+    -- 100006 iPhone 17 Pro display (plus review id 1 above)
+    (37, 100006, 'elaine', 5, 'Superb ProMotion screen', 'Smooth high refresh and accurate colors, feels brand new.', 'published', 1, DATE_SUB(NOW(), INTERVAL 44 DAY)),
+    (38, 100006, 'fred', 5, 'Flawless panel', 'No dead pixels and brightness is excellent indoors and out.', 'published', 1, DATE_SUB(NOW(), INTERVAL 36 DAY)),
+    (39, 100006, 'gina', 4, 'Very good', 'Great display, took a little longer to arrive than expected.', 'published', 0, DATE_SUB(NOW(), INTERVAL 25 DAY)),
+    (40, 100006, 'harry', 5, 'Worth it', 'Expensive part but the quality justifies it.', 'published', 1, DATE_SUB(NOW(), INTERVAL 16 DAY)),
+    (41, 100006, 'iris', 5, 'Like the original', 'Cannot tell the difference from the factory screen.', 'published', 0, DATE_SUB(NOW(), INTERVAL 8 DAY)),
+    (42, 100006, 'jonas', 4, 'Solid replacement', 'Works well, minor color shift at extreme angles.', 'published', 0, DATE_SUB(NOW(), INTERVAL 3 DAY)),
+
+    -- 100007 Pixel 7 / 8 AMOLED display
+    (43, 100007, 'kat', 5, 'AMOLED is gorgeous', 'Blacks are perfect and the refresh rate feels smooth.', 'published', 1, DATE_SUB(NOW(), INTERVAL 47 DAY)),
+    (44, 100007, 'leo', 5, 'Fits Pixel 8', 'Installed on my Pixel 8 with no issues at all.', 'published', 1, DATE_SUB(NOW(), INTERVAL 39 DAY)),
+    (45, 100007, 'mia', 4, 'Good screen', 'Bright and responsive, though slightly reflective in sunlight.', 'published', 0, DATE_SUB(NOW(), INTERVAL 31 DAY)),
+    (46, 100007, 'nate', 5, 'Fixed my cracked Pixel', 'Touch works perfectly and colors look accurate.', 'published', 1, DATE_SUB(NOW(), INTERVAL 21 DAY)),
+    (47, 100007, 'olivia', 3, 'Okay overall', 'Screen works but a faint line appeared near the edge.', 'published', 0, DATE_SUB(NOW(), INTERVAL 15 DAY)),
+    (48, 100007, 'peter', 5, 'Very satisfied', 'Great replacement, would buy again from this store.', 'published', 1, DATE_SUB(NOW(), INTERVAL 6 DAY)),
+
+    -- 100008 Pixel 9 / 10 battery
+    (49, 100008, 'rhea', 5, 'Battery health restored', 'Back to all-day battery life on my Pixel 9.', 'published', 1, DATE_SUB(NOW(), INTERVAL 43 DAY)),
+    (50, 100008, 'sofia', 5, 'No more random shutdowns', 'The old battery was swelling; this one is solid.', 'published', 1, DATE_SUB(NOW(), INTERVAL 32 DAY)),
+    (51, 100008, 'troy', 4, 'Good cell', 'Works as expected, charging speed is normal.', 'published', 0, DATE_SUB(NOW(), INTERVAL 24 DAY)),
+    (52, 100008, 'uma', 5, 'Reliable', 'A week in and the battery is holding up well.', 'published', 1, DATE_SUB(NOW(), INTERVAL 14 DAY)),
+    (53, 100008, 'victor', 4, 'Decent battery', 'Good value, just wish it came with adhesive strips.', 'published', 0, DATE_SUB(NOW(), INTERVAL 7 DAY)),
+
+    -- 100009 Galaxy S21 / S22 display (plus review id 4 above)
+    (54, 100009, 'wendy', 5, 'Vivid display', 'Colors pop and the high refresh rate is buttery smooth.', 'published', 1, DATE_SUB(NOW(), INTERVAL 49 DAY)),
+    (55, 100009, 'aaron', 5, 'Perfect for S22', 'Exact fit and the fingerprint sensor works under the screen.', 'published', 1, DATE_SUB(NOW(), INTERVAL 40 DAY)),
+    (56, 100009, 'bella', 4, 'Good quality', 'Looks great, though shipping took a few extra days.', 'published', 0, DATE_SUB(NOW(), INTERVAL 33 DAY)),
+    (57, 100009, 'oscar', 5, 'Bright and clear', 'Excellent brightness and the touch is very responsive.', 'published', 1, DATE_SUB(NOW(), INTERVAL 27 DAY)),
+    (58, 100009, 'grace', 5, 'Matches the original', 'Color accuracy is close enough that I cannot tell the difference.', 'published', 1, DATE_SUB(NOW(), INTERVAL 18 DAY)),
+    (59, 100009, 'paul', 3, 'Slight light bleed', 'Works well, but a little light bleed in the corner.', 'published', 0, DATE_SUB(NOW(), INTERVAL 10 DAY)),
+    (60, 100009, 'rhea', 5, 'Great replacement', 'Installed cleanly and the display looks superb.', 'published', 1, DATE_SUB(NOW(), INTERVAL 5 DAY)),
+
+    -- 100010 Galaxy S23 / S24 Ultra battery
+    (61, 100010, 'miguel', 5, 'Battery lasts all day', 'Heavy use and it still finishes the day with charge left.', 'published', 1, DATE_SUB(NOW(), INTERVAL 45 DAY)),
+    (62, 100010, 'ana', 5, 'Great capacity', 'Capacity matches the listing and the phone runs cool.', 'published', 1, DATE_SUB(NOW(), INTERVAL 37 DAY)),
+    (63, 100010, 'carlo', 4, 'Good battery', 'Solid replacement, a little pricey but worth it.', 'published', 0, DATE_SUB(NOW(), INTERVAL 30 DAY)),
+    (64, 100010, 'liza', 5, 'No more afternoon top-ups', 'Huge improvement over the worn-out original.', 'published', 1, DATE_SUB(NOW(), INTERVAL 22 DAY)),
+    (65, 100010, 'paolo', 5, 'Fits perfectly', 'Dropped in without any trimming or fuss.', 'published', 1, DATE_SUB(NOW(), INTERVAL 16 DAY)),
+    (66, 100010, 'grace', 3, 'Works, slightly warm', 'Holds charge well but runs a little warm while charging.', 'published', 0, DATE_SUB(NOW(), INTERVAL 11 DAY)),
+    (67, 100010, 'mark', 5, 'Solid replacement', 'Two weeks of use and capacity is still strong.', 'published', 1, DATE_SUB(NOW(), INTERVAL 9 DAY)),
+    (68, 100010, 'bea', 4, 'Reliable so far', 'Good battery, the install just took a while.', 'published', 0, DATE_SUB(NOW(), INTERVAL 6 DAY)),
+    (69, 100010, 'diana', 5, 'Back to normal', 'The phone now lasts like it did when new.', 'published', 1, DATE_SUB(NOW(), INTERVAL 3 DAY)),
+
+    -- 100011 Galaxy S25 / S26 display
+    (70, 100011, 'eric', 5, 'Gorgeous AMOLED', 'Vivid colors and excellent brightness in sunlight.', 'published', 1, DATE_SUB(NOW(), INTERVAL 41 DAY)),
+    (71, 100011, 'faith', 5, 'Perfect fit', 'Installed cleanly with no gaps and the touch is flawless.', 'published', 1, DATE_SUB(NOW(), INTERVAL 34 DAY)),
+    (72, 100011, 'ivan', 4, 'Good screen', 'Bright and sharp, a touch reflective at extreme angles.', 'published', 0, DATE_SUB(NOW(), INTERVAL 26 DAY)),
+    (73, 100011, 'jasmine', 5, 'Very bright', 'Reads well outdoors and the colors are accurate.', 'published', 1, DATE_SUB(NOW(), INTERVAL 17 DAY)),
+    (74, 100011, 'kevin', 2, 'Arrived cracked', 'The panel was damaged in transit but support replaced it quickly.', 'published', 0, DATE_SUB(NOW(), INTERVAL 5 DAY)),
+
+    -- 100012 ThinkPad T14 / X1 Carbon keyboard
+    (75, 100012, 'lorna', 5, 'Typing feels great', 'The key travel matches the original keyboard closely.', 'published', 1, DATE_SUB(NOW(), INTERVAL 48 DAY)),
+    (76, 100012, 'marvin', 5, 'Backlight works', 'Backlight and the trackpoint both function perfectly.', 'published', 1, DATE_SUB(NOW(), INTERVAL 38 DAY)),
+    (77, 100012, 'nina', 4, 'Good keyboard', 'Great replacement, installation just takes a little care.', 'published', 0, DATE_SUB(NOW(), INTERVAL 28 DAY)),
+    (78, 100012, 'oscar', 5, 'Trackpoint included', 'Nice that the trackpoint came with the assembly.', 'published', 1, DATE_SUB(NOW(), INTERVAL 20 DAY)),
+    (79, 100012, 'patricia', 5, 'Exact match', 'Every key registers and the feel is consistent.', 'published', 1, DATE_SUB(NOW(), INTERVAL 13 DAY)),
+    (80, 100012, 'quincy', 4, 'Solid', 'Good keyboard, the backlight is slightly uneven.', 'published', 0, DATE_SUB(NOW(), INTERVAL 7 DAY)),
+
+    -- 100013 ThinkPad 65W USB-C adapter
+    (81, 100013, 'rose', 5, 'Charges fast', 'Delivers full power and the laptop stopped complaining.', 'published', 1, DATE_SUB(NOW(), INTERVAL 44 DAY)),
+    (82, 100013, 'samuel', 5, 'Genuine adapter', 'Build quality is excellent and it stays cool.', 'published', 1, DATE_SUB(NOW(), INTERVAL 35 DAY)),
+    (83, 100013, 'trisha', 4, 'Works well', 'Good adapter, the cable is a little short for my setup.', 'published', 0, DATE_SUB(NOW(), INTERVAL 27 DAY)),
+    (84, 100013, 'ulysses', 5, 'No more low battery', 'Perfect replacement for the charger I lost.', 'published', 1, DATE_SUB(NOW(), INTERVAL 19 DAY)),
+    (85, 100013, 'vera', 5, 'Compact and light', 'Easy to carry and charges reliably every time.', 'published', 1, DATE_SUB(NOW(), INTERVAL 12 DAY)),
+    (86, 100013, 'wesley', 3, 'Gets warm', 'Charges fine but runs warmer than the original.', 'published', 0, DATE_SUB(NOW(), INTERVAL 8 DAY)),
+    (87, 100013, 'xander', 4, 'Good value', 'Does the job at a fair price.', 'published', 0, DATE_SUB(NOW(), INTERVAL 4 DAY)),
+
+    -- 100014 IdeaPad Slim 3 / 5 screen
+    (88, 100014, 'yasmin', 5, 'Crisp and bright', 'Full HD looks sharp and the panel is evenly lit.', 'published', 1, DATE_SUB(NOW(), INTERVAL 41 DAY)),
+    (89, 100014, 'zara', 5, 'Perfect FHD panel', 'Exact fit and no dead pixels out of the box.', 'published', 1, DATE_SUB(NOW(), INTERVAL 34 DAY)),
+    (90, 100014, 'noel', 4, 'Good display', 'Great screen, took a while to arrive.', 'published', 0, DATE_SUB(NOW(), INTERVAL 26 DAY)),
+    (91, 100014, 'cindy', 5, 'Fixed the cracked screen', 'The laptop looks new again after the swap.', 'published', 1, DATE_SUB(NOW(), INTERVAL 17 DAY)),
+    (92, 100014, 'danilo', 4, 'Nice', 'Good brightness and solid viewing angles.', 'published', 0, DATE_SUB(NOW(), INTERVAL 9 DAY)),
+    (93, 100014, 'elaine', 5, 'Very happy', 'Matched the original panel perfectly.', 'published', 1, DATE_SUB(NOW(), INTERVAL 5 DAY)),
+
+    -- 100015 IdeaPad battery (plus review id 2 above)
+    (94, 100015, 'fred', 5, 'Long battery life', 'Back to several hours of use after the replacement.', 'published', 1, DATE_SUB(NOW(), INTERVAL 43 DAY)),
+    (95, 100015, 'gina', 5, 'Reliable cell', 'Holds charge well and fits the bay exactly.', 'published', 1, DATE_SUB(NOW(), INTERVAL 32 DAY)),
+    (96, 100015, 'harry', 3, 'Average', 'Works but the capacity feels slightly below the listing.', 'published', 0, DATE_SUB(NOW(), INTERVAL 24 DAY)),
+    (97, 100015, 'iris', 4, 'Good replacement', 'Solid battery, happy with the purchase.', 'published', 0, DATE_SUB(NOW(), INTERVAL 14 DAY)),
+
+    -- 100016 Steam Deck OLED screen
+    (98, 100016, 'jonas', 5, 'Anti-glare is great', 'Far less reflection when gaming outdoors compared to the original.', 'published', 1, DATE_SUB(NOW(), INTERVAL 47 DAY)),
+    (99, 100016, 'kat', 5, 'Made my Deck like new', 'Sharp and vibrant, and the anti-glare finish is a bonus.', 'published', 1, DATE_SUB(NOW(), INTERVAL 39 DAY)),
+    (100, 100016, 'leo', 4, 'Good panel', 'Great screen, installation needs a steady hand.', 'published', 0, DATE_SUB(NOW(), INTERVAL 31 DAY)),
+    (101, 100016, 'mia', 5, 'Colors are vivid', 'Games look fantastic on this replacement panel.', 'published', 1, DATE_SUB(NOW(), INTERVAL 21 DAY)),
+    (102, 100016, 'nate', 5, 'Perfect replacement', 'Exact fit and the touch works flawlessly.', 'published', 1, DATE_SUB(NOW(), INTERVAL 15 DAY)),
+    (103, 100016, 'olivia', 4, 'Works fine', 'Good display, slightly dim at the lowest setting.', 'published', 0, DATE_SUB(NOW(), INTERVAL 10 DAY)),
+    (104, 100016, 'peter', 5, 'Excellent', 'Looks better than the panel it replaced.', 'published', 1, DATE_SUB(NOW(), INTERVAL 6 DAY)),
+    (105, 100016, 'quinn', 5, 'Highly recommend', 'Well packed and easy to fit.', 'published', 1, DATE_SUB(NOW(), INTERVAL 3 DAY)),
+
+    -- 100017 Steam Deck joystick modules (plus review id 3 above)
+    (106, 100017, 'rhea', 5, 'Drift fixed completely', 'No more stick drift after installing these modules.', 'published', 1, DATE_SUB(NOW(), INTERVAL 45 DAY)),
+    (107, 100017, 'sofia', 5, 'Smooth sticks', 'Movement is precise and the tension feels right.', 'published', 1, DATE_SUB(NOW(), INTERVAL 36 DAY)),
+    (108, 100017, 'troy', 4, 'Good modules', 'Works well, the caps need a firm press to reseat.', 'published', 0, DATE_SUB(NOW(), INTERVAL 28 DAY)),
+    (109, 100017, 'uma', 5, 'Hall effect is the way', 'Should outlast the original sticks by a long way.', 'published', 1, DATE_SUB(NOW(), INTERVAL 19 DAY)),
+    (110, 100017, 'victor', 5, 'No more drift', 'My Deck plays like new again.', 'published', 1, DATE_SUB(NOW(), INTERVAL 11 DAY)),
+    (111, 100017, 'wendy', 4, 'Solid pair', 'Good quality and the installation was quick.', 'published', 0, DATE_SUB(NOW(), INTERVAL 6 DAY)),
+
+    -- 100018 Switch v1 / v2 LCD
+    (112, 100018, 'aaron', 5, 'Switch looks new', 'Replaced a badly cracked screen and it looks factory fresh.', 'published', 1, DATE_SUB(NOW(), INTERVAL 46 DAY)),
+    (113, 100018, 'bella', 5, 'Great LCD', 'Bright, sharp and the touch works perfectly.', 'published', 1, DATE_SUB(NOW(), INTERVAL 38 DAY)),
+    (114, 100018, 'carlo', 4, 'Good screen', 'Works well, minor color difference from the original.', 'published', 0, DATE_SUB(NOW(), INTERVAL 30 DAY)),
+    (115, 100018, 'diana', 5, 'Perfect fit', 'Dropped in with no gaps and no issues.', 'published', 1, DATE_SUB(NOW(), INTERVAL 21 DAY)),
+    (116, 100018, 'eric', 5, 'Bright and clear', 'Very happy with the replacement.', 'published', 1, DATE_SUB(NOW(), INTERVAL 13 DAY)),
+    (117, 100018, 'faith', 3, 'Works, slight light bleed', 'Functional panel but a little light bleed in the corner.', 'published', 0, DATE_SUB(NOW(), INTERVAL 7 DAY)),
+
+    -- 100019 Switch 2 OLED
+    (118, 100019, 'grace', 5, 'OLED is stunning', 'Deep blacks and vivid color on the Switch 2 panel.', 'published', 1, DATE_SUB(NOW(), INTERVAL 49 DAY)),
+    (119, 100019, 'harry', 5, 'Gorgeous colors', 'The OLED upgrade is a huge step up.', 'published', 1, DATE_SUB(NOW(), INTERVAL 41 DAY)),
+    (120, 100019, 'ivan', 4, 'Good panel', 'Looks great, took a few days to arrive.', 'published', 0, DATE_SUB(NOW(), INTERVAL 34 DAY)),
+    (121, 100019, 'jasmine', 5, 'Beautiful display', 'Games look incredible after the swap.', 'published', 1, DATE_SUB(NOW(), INTERVAL 27 DAY)),
+    (122, 100019, 'kevin', 5, 'Exact fit', 'Installed cleanly and the touch works perfectly.', 'published', 1, DATE_SUB(NOW(), INTERVAL 20 DAY)),
+    (123, 100019, 'lorna', 4, 'Very good', 'Excellent screen, slightly expensive.', 'published', 0, DATE_SUB(NOW(), INTERVAL 15 DAY)),
+    (124, 100019, 'marvin', 5, 'HDR looks great', 'HDR content really shines on this panel.', 'published', 1, DATE_SUB(NOW(), INTERVAL 10 DAY)),
+    (125, 100019, 'nina', 5, 'Perfect replacement', 'Matched the original and works flawlessly.', 'published', 1, DATE_SUB(NOW(), INTERVAL 7 DAY)),
+    (126, 100019, 'oscar', 4, 'Nice screen', 'Good quality, installation just takes some care.', 'published', 0, DATE_SUB(NOW(), INTERVAL 4 DAY)),
+    (127, 100019, 'patricia', 5, 'Absolutely worth it', 'The best upgrade I have made to my console.', 'published', 1, DATE_SUB(NOW(), INTERVAL 1 DAY))
 ON DUPLICATE KEY UPDATE id = id;
 
 -- ---------------------------------------------------------------------------
