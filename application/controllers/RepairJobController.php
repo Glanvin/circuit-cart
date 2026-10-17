@@ -7,7 +7,7 @@ class RepairJobController extends MY_Controller {
 
 	protected string $navbar = 'templates/navbar_employees';
 
-	protected array $allowedRoles = ['admin', 'technician'];
+	protected array $allowedRoles = ['admin', 'manager', 'technician'];
 
 	private const STATUSES = ['diagnosis', 'estimate_pending', 'approved', 'in_progress', 'ready_for_pickup', 'completed', 'cancelled'];
 
@@ -31,8 +31,7 @@ class RepairJobController extends MY_Controller {
 
 		try {
 			$jobs = $this->RepairJobModel->getJobs($filters, $sort);
-			$technicians = $this->EmployeeModel->getAllEmployees();
-			$technicians = array_filter($technicians, fn($e) => in_array($e['role'], ['technician', 'admin']) && (int) $e['is_active'] === 1);
+			$technicians = $this->assignableTechnicians();
 		} catch (AppException $e) {
 			$this->toastify->error($e->toToast());
 		}
@@ -54,6 +53,10 @@ class RepairJobController extends MY_Controller {
 		try {
 			$job = $this->RepairJobModel->getJobById($job_id);
 			$parts = $this->PartsModel->getAllParts(); //For parts selector
+			$technicians = $this->assignableTechnicians();
+			$payments = $this->RepairJobModel->getPaymentsForJob($job_id);
+			$totals = $this->RepairJobModel->computeTotals($job);
+			$payment_methods = $this->SalesModel->getActivePaymentMethods();
 		} catch (AppException $e) {
 			$this->toastify->error($e->toToast());
 			redirect('repair/jobs', 'refresh');
@@ -64,8 +67,43 @@ class RepairJobController extends MY_Controller {
 			'title' => 'Job ' . $job['job_reference'],
 			'job' => $job,
 			'parts' => $parts,
+			'technicians' => $technicians,
+			'payments' => $payments,
+			'totals' => $totals,
+			'payment_methods' => $payment_methods,
 			'statuses' => self::STATUSES,
 		]);
+	}
+
+	//Assigns the job to a technician, or clears the assignment when none is sent.
+	public function assign(int $job_id)
+	{
+		$technician_id = (int) $this->input->post('technician_id', true);
+
+		try {
+			$job = $this->RepairJobModel->assignTechnician($job_id, $technician_id ?: NULL);
+
+			if ($job['technician_id']) {
+				$employee = $this->EmployeeModel->getEmployeeById($job['technician_id']);
+				$name = trim(($employee['firstname'] ?? '') . ' ' . ($employee['lastname'] ?? ''));
+				$this->toastify->success('Job assigned to ' . ($name !== '' ? $name : 'technician #' . $job['technician_id']) . '.');
+			} else {
+				$this->toastify->success('Technician unassigned.');
+			}
+		} catch (AppException $e) {
+			$this->toastify->error($e->toToast());
+		}
+
+		redirect('repair/jobs/view/' . $job_id, 'refresh');
+	}
+
+	//Active technicians and admins that a repair job may be assigned to.
+	private function assignableTechnicians(): array
+	{
+		return array_values(array_filter(
+			$this->EmployeeModel->getAllEmployees(),
+			fn($e) => in_array($e['role'], ['technician', 'admin'], TRUE) && (int) $e['is_active'] === 1
+		));
 	}
 
 	//Updates job status.
@@ -81,7 +119,7 @@ class RepairJobController extends MY_Controller {
 		}
 
 		try {
-			$this->RepairJobModel->updateStatus($job_id, $status, $note);
+			$this->RepairJobModel->updateStatus($job_id, $status, $note, (int) $this->session->userdata('employee_id'));
 			$this->toastify->success('Status updated to ' . $status . '.');
 		} catch (AppException $e) {
 			$this->toastify->error($e->toToast());
@@ -106,8 +144,22 @@ class RepairJobController extends MY_Controller {
 
 		try {
 			$this->RepairJobModel->setDiagnosis($job_id, $diagnosis, $estimate_total);
-			$msg = $estimate_total ? 'Diagnosis and estimate saved.' : 'Diagnosis saved (no estimate).';
-			$this->toastify->success($msg);
+
+			if ($estimate_total !== NULL && $estimate_total > 0) {
+				//Email the customer approve/decline links for the fresh estimate token.
+				$job = $this->RepairJobModel->getJobById($job_id);
+				$booking = $this->BookingModel->getBookingById($job['booking_id']);
+
+				send_repair_estimate_email(
+					$booking['username'],
+					$job,
+					site_url('repair/estimate/' . $job['estimate_token'])
+				);
+
+				$this->toastify->success('Diagnosis and estimate saved. Estimate emailed to the customer.');
+			} else {
+				$this->toastify->success('Diagnosis saved (no estimate).');
+			}
 		} catch (AppException $e) {
 			$this->toastify->error($e->toToast());
 		}
@@ -161,7 +213,7 @@ class RepairJobController extends MY_Controller {
 		}
 
 		try {
-			$this->RepairJobModel->addPartsUsed($job_id, $cleanParts);
+			$this->RepairJobModel->addPartsUsed($job_id, $cleanParts, (int) $this->session->userdata('employee_id'));
 			$this->toastify->success('Parts added to repair job.');
 		} catch (AppException $e) {
 			$this->toastify->error($e->toToast());
@@ -256,10 +308,32 @@ class RepairJobController extends MY_Controller {
 		redirect('repair/jobs/view/' . $job_id, 'refresh');
 	}
 
-	//Marks job as picked up/completed.
+	/*
+	 * Marks a job picked up/completed. The device may only leave once its
+	 * recorded charge is settled. Admin/manager may release it on account by
+	 * explicitly ticking the override, which is recorded in the job history.
+	 */
 	public function pickup(int $job_id)
 	{
 		try {
+			$job = $this->RepairJobModel->getJobById($job_id);
+			$totals = $this->RepairJobModel->computeTotals($job);
+
+			$on_account = (bool) $this->input->post('on_account');
+			$role = (string) $this->session->userdata('employee_role');
+
+			if ($totals['balance'] > 0.001) {
+				if (!$on_account || !in_array($role, ['admin', 'manager'], TRUE)) {
+					throw new AppException('D22', ['balance' => number_format($totals['balance'], 2)]);
+				}
+
+				$this->RepairJobModel->addNote(
+					$job_id,
+					'Released on account with outstanding balance of ₱' . number_format($totals['balance'], 2)
+						. ' approved by ' . $role
+				);
+			}
+
 			$this->RepairJobModel->markPickedUp($job_id);
 			$this->toastify->success('Job marked as picked up.');
 
@@ -272,6 +346,36 @@ class RepairJobController extends MY_Controller {
 				'Your device has been picked up. Thank you for choosing Circuit Cart!',
 				['Job Reference' => $job['job_reference'], 'Status' => 'Completed']
 			);
+		} catch (AppException $e) {
+			$this->toastify->error($e->toToast());
+		}
+
+		redirect('repair/jobs/view/' . $job_id, 'refresh');
+	}
+
+	//Records a deposit or final payment against a repair job.
+	public function recordPayment(int $job_id)
+	{
+		$amount = $this->input->post('amount', true);
+		$kind = (string) $this->input->post('kind', true);
+		$method_id = (int) $this->input->post('method_id', true);
+		$reference = (string) $this->input->post('reference', true);
+
+		if ($amount === NULL || $amount === '' || (float) $amount <= 0) {
+			$this->toastify->error('Enter a payment amount greater than zero.');
+			redirect('repair/jobs/view/' . $job_id, 'refresh');
+			return;
+		}
+
+		try {
+			$this->RepairJobModel->recordPayment($job_id, [
+				'amount' => (float) $amount,
+				'kind' => $kind === 'deposit' ? 'deposit' : 'payment',
+				'method_id' => $method_id,
+				'reference' => $reference,
+			], (int) $this->session->userdata('employee_id'));
+
+			$this->toastify->success('Payment recorded.');
 		} catch (AppException $e) {
 			$this->toastify->error($e->toToast());
 		}

@@ -83,4 +83,36 @@
             <?= form_close(); ?>
         </div>
     </div>
+
+    <?php if (in_array($employee['role'] ?? '', ['manager', 'admin'], TRUE)): ?>
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-key me-1"></i>Refund Authorization PIN
+            </div>
+            <div class="card-body">
+                <p class="text-body-secondary">
+                    <?= !empty($refund_pin_configured)
+                        ? 'A PIN is set. Enter a new one below to replace it.'
+                        : 'Set a 6-digit PIN. A manager or admin must enter it before any POS refund or void can proceed.' ?>
+                </p>
+                <?= form_open('employee/settings/updateRefundPin'); ?>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="refund-pin-current-password" class="form-label">Current Password</label>
+                            <input type="password" class="form-control" id="refund-pin-current-password" name="current_password" autocomplete="current-password" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="refund-pin" class="form-label">New 6-digit PIN</label>
+                            <input type="password" class="form-control" id="refund-pin" name="refund_pin" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="new-password" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="confirm-refund-pin" class="form-label">Confirm PIN</label>
+                            <input type="password" class="form-control" id="confirm-refund-pin" name="confirm_refund_pin" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="new-password" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3" name="save_refund_pin" value="1">Save Refund PIN</button>
+                <?= form_close(); ?>
+            </div>
+        </div>
+    <?php endif; ?>
 </div>

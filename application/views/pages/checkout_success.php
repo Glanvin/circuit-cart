@@ -21,6 +21,13 @@
                 <dt class="col-sm-5 fw-normal text-muted">Delivery Address</dt>
                 <dd class="col-sm-7"><?= html_escape($sale['customer_address'] ?? '') ?></dd>
 
+                <dt class="col-sm-5 fw-normal text-muted">Payment Method</dt>
+                <dd class="col-sm-7"><?php
+                    $paymentCode = $sale['payment_methods'][0]['code'] ?? 'cod';
+                    $paymentLabels = ['cod' => 'Cash on delivery', 'gcash' => 'GCash', 'gotyme' => 'GoTyme', 'card' => 'Credit or debit card'];
+                    echo html_escape($paymentLabels[$paymentCode] ?? ucfirst($paymentCode));
+                ?></dd>
+
                 <dt class="col-sm-5 fw-normal text-muted">Items</dt>
                 <dd class="col-sm-7">
                     <?php foreach ((array) ($sale['items'] ?? []) as $item): ?>

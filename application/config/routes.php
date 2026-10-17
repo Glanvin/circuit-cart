@@ -52,25 +52,40 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 $route['default_controller'] = 'HomeController';
 $route['home'] = 'HomeController';
 $route['browse'] = 'BrowseController';
+$route['browse/(:num)'] = 'BrowseController/product/$1';
 $route['cart'] = 'CartController';
 $route['cart/add/(:num)'] = 'CartController/add/$1';
 $route['cart/buy/(:num)'] = 'CartController/buyNow/$1';
 $route['cart/update/(:num)'] = 'CartController/update/$1';
 $route['cart/remove/(:num)'] = 'CartController/remove/$1';
+$route['cart/promo'] = 'CartController/applyPromo';
+$route['cart/promo/remove'] = 'CartController/removePromo';
 $route['checkout'] = 'CheckoutController';
 $route['checkout/place'] = 'CheckoutController/placeOrder';
 $route['checkout/success'] = 'CheckoutController/success';
+$route['checkout/promo'] = 'CheckoutController/applyPromo';
+$route['checkout/promo/remove'] = 'CheckoutController/removePromo';
+
+$route['wishlist'] = 'WishlistController';
+$route['wishlist/toggle/(:num)'] = 'WishlistController/toggle/$1';
+$route['wishlist/remove/(:num)'] = 'WishlistController/remove/$1';
+
+$route['review/create/(:num)'] = 'ReviewController/create/$1';
 
 $route['booking'] = 'BookingController';
 $route['booking/appointments'] = 'BookingController/appointments';
 $route['booking/slots/(:any)'] = 'BookingController/getSlots/$1';
+$route['booking/cancel/(:num)'] = 'BookingController/cancel/$1';
+$route['booking/reschedule/(:num)'] = 'BookingController/reschedule/$1';
 
 $route['orders'] = 'OrdersController';
 $route['orders/view/(:num)'] = 'OrdersController/view/$1';
+$route['orders/cancel/(:num)'] = 'OrdersController/cancel/$1';
 
 $route['repair/jobs'] = 'RepairJobController';
 $route['repair/jobs/view/(:num)'] = 'RepairJobController/view/$1';
 $route['repair/jobs/status/(:num)'] = 'RepairJobController/status/$1';
+$route['repair/jobs/assign/(:num)'] = 'RepairJobController/assign/$1';
 $route['repair/jobs/diagnose/(:num)'] = 'RepairJobController/diagnose/$1';
 $route['repair/jobs/approve/(:num)'] = 'RepairJobController/approveEstimate/$1';
 $route['repair/jobs/parts/(:num)'] = 'RepairJobController/addParts/$1';
@@ -78,19 +93,38 @@ $route['repair/jobs/labor/(:num)'] = 'RepairJobController/addLabor/$1';
 $route['repair/jobs/note/(:num)'] = 'RepairJobController/addNote/$1';
 $route['repair/jobs/ready/(:num)'] = 'RepairJobController/ready/$1';
 $route['repair/jobs/pickup/(:num)'] = 'RepairJobController/pickup/$1';
+$route['repair/jobs/payment/(:num)'] = 'RepairJobController/recordPayment/$1';
+
+$route['repair/status/(:any)'] = 'RepairStatusController/index/$1';
+$route['repair/estimate/(:any)/approve'] = 'RepairStatusController/approve/$1';
+$route['repair/estimate/(:any)/decline'] = 'RepairStatusController/decline/$1';
+$route['repair/estimate/(:any)'] = 'RepairStatusController/estimate/$1';
 
 $route['bugs'] = 'BugController';
 
 $route['storage/booking'] = 'EmployeeBookingController';
 $route['storage/booking/approve/(:num)'] = 'EmployeeBookingController/approve/$1';
+$route['storage/booking/pick/(:num)'] = 'EmployeeBookingController/pick/$1';
 $route['storage/booking/reschedule/(:num)'] = 'EmployeeBookingController/reschedule/$1';
 $route['storage/booking/decline/(:num)'] = 'EmployeeBookingController/decline/$1';
 $route['storage/booking/finish/(:num)'] = 'EmployeeBookingController/finish/$1';
+$route['storage/booking/unfinish/(:num)'] = 'EmployeeBookingController/unfinish/$1';
 
 $route['storage/bugs'] = 'EmployeeBugController';
 $route['storage/bugs/status/(:num)/(:any)'] = 'EmployeeBugController/status/$1/$2';
 
 $route['employee/dashboard'] = 'DashboardController';
+$route['employee/promos'] = 'PromoAdminController';
+$route['employee/promos/new'] = 'PromoAdminController/new';
+$route['employee/promos/edit/(:num)'] = 'PromoAdminController/edit/$1';
+$route['employee/promos/toggle/(:num)'] = 'PromoAdminController/toggle/$1';
+$route['employee/reviews'] = 'ReviewAdminController';
+$route['employee/reviews/status/(:num)/(:any)'] = 'ReviewAdminController/status/$1/$2';
+$route['employee/reviews/delete/(:num)'] = 'ReviewAdminController/delete/$1';
+$route['employee/services'] = 'RepairServiceAdminController';
+$route['employee/services/new'] = 'RepairServiceAdminController/new';
+$route['employee/services/edit/(:num)'] = 'RepairServiceAdminController/edit/$1';
+$route['employee/services/toggle/(:num)'] = 'RepairServiceAdminController/toggle/$1';
 $route['employee/analytics'] = 'AnalyticsController';
 $route['employee/analytics/data'] = 'AnalyticsController/data';
 $route['employee/orders'] = 'AnalyticsController/orders';
@@ -108,6 +142,7 @@ $route['employee/manage/employees/new'] = 'ManagementController/newEmployee';
 $route['employee/settings'] = 'EmployeeSettingsController';
 $route['employee/settings/updateProfile'] = 'EmployeeSettingsController/updateProfile';
 $route['employee/settings/updatePassword'] = 'EmployeeSettingsController/updatePassword';
+$route['employee/settings/updateRefundPin'] = 'EmployeeSettingsController/updateRefundPin';
 $route['employee/settings/verify'] = 'EmployeeSettingsController/verify';
 
 $route['employee'] = 'EmployeeAuthController';
@@ -116,6 +151,8 @@ $route['employee/signout'] = 'EmployeeAuthController/signout';
 
 $route['pos'] = 'PosController';
 $route['pos/complete'] = 'PosController/complete';
+$route['pos/lookup'] = 'PosController/lookup';
+$route['pos/refund'] = 'PosController/refund';
 
 $route['inventory/stocks'] = 'StockController';
 $route['inventory/stocks/new'] = 'StockController/newSKU';
@@ -128,6 +165,11 @@ $route['auth/signin'] = 'AuthController/signin';
 $route['auth/signup'] = 'AuthController/signup';
 $route['auth/signout'] = 'AuthController/signout';
 $route['auth/verify'] = 'AuthController/verify';
+$route['auth/forgot'] = 'AuthController/forgot';
+$route['auth/forgot/send'] = 'AuthController/requestReset';
+$route['auth/reset'] = 'AuthController/requestReset';
+$route['auth/reset/apply'] = 'AuthController/applyReset';
+$route['auth/reset/(:any)'] = 'AuthController/reset/$1';
 
 $route['settings'] = 'SettingsController';
 $route['settings/theme'] = 'SettingsController/theme';

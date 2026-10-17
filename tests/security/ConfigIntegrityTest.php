@@ -63,6 +63,33 @@ class ConfigIntegrityTest extends TestCase {
 		}
 	}
 
+	public function testGuestCheckoutValidatesDeliveryAddressNotGuestAddress() {
+		// Regression: the rule once targeted 'guest_address', which the form
+		// never posts, so guest checkout validation silently passed.
+		$fields = array_column($this->config['checkout_guest'], 'field');
+		$this->assertContains('delivery_address', $fields);
+		$this->assertNotContains('guest_address', $fields);
+
+		foreach ($this->config['checkout_guest'] as $rule) {
+			if ($rule['field'] === 'delivery_address') {
+				$this->assertStringContainsString('required', $rule['rules']);
+				$this->assertStringContainsString('max_length', $rule['rules']);
+			}
+		}
+	}
+
+	public function testSignedInCheckoutLengthChecksAddress() {
+		$this->assertArrayHasKey('checkout_user', $this->config);
+		$fields = array_column($this->config['checkout_user'], 'field');
+		$this->assertContains('delivery_address', $fields);
+
+		foreach ($this->config['checkout_user'] as $rule) {
+			if ($rule['field'] === 'delivery_address') {
+				$this->assertStringContainsString('max_length', $rule['rules']);
+			}
+		}
+	}
+
 	public function testAllSigninRuleSetsExist() {
 		$this->assertArrayHasKey('user_signup', $this->config);
 		$this->assertArrayHasKey('user_signin', $this->config);
@@ -79,12 +106,34 @@ class ConfigIntegrityTest extends TestCase {
 		$expectations = [
 			'home'                       => 'HomeController',
 			'browse'                     => 'BrowseController',
+			'wishlist'                   => 'WishlistController',
+			'wishlist/toggle/(:num)'     => 'WishlistController/toggle/$1',
+			'wishlist/remove/(:num)'     => 'WishlistController/remove/$1',
+			'review/create/(:num)'       => 'ReviewController/create/$1',
+			'employee/reviews'           => 'ReviewAdminController',
+			'employee/reviews/status/(:num)/(:any)' => 'ReviewAdminController/status/$1/$2',
+			'employee/reviews/delete/(:num)' => 'ReviewAdminController/delete/$1',
 			'employee/dashboard'         => 'DashboardController',
 			'employee/manage/users'      => 'ManagementController/users',
 			'inventory/stocks'           => 'StockController',
 			'auth/signin'                => 'AuthController/signin',
 			'auth/signup'                => 'AuthController/signup',
 			'auth/signout'               => 'AuthController/signout',
+			'orders/cancel/(:num)'       => 'OrdersController/cancel/$1',
+			'pos/refund'                 => 'PosController/refund',
+			'pos/lookup'                 => 'PosController/lookup',
+			'employee/settings/updateRefundPin' => 'EmployeeSettingsController/updateRefundPin',
+			'repair/jobs/assign/(:num)'  => 'RepairJobController/assign/$1',
+			'repair/jobs/payment/(:num)' => 'RepairJobController/recordPayment/$1',
+			'booking/cancel/(:num)'      => 'BookingController/cancel/$1',
+			'booking/reschedule/(:num)'  => 'BookingController/reschedule/$1',
+			'employee/services'          => 'RepairServiceAdminController',
+			'repair/status/(:any)'       => 'RepairStatusController/index/$1',
+			'repair/estimate/(:any)'     => 'RepairStatusController/estimate/$1',
+			'repair/estimate/(:any)/approve' => 'RepairStatusController/approve/$1',
+			'repair/estimate/(:any)/decline' => 'RepairStatusController/decline/$1',
+			'storage/booking/pick/(:num)' => 'EmployeeBookingController/pick/$1',
+			'storage/booking/unfinish/(:num)' => 'EmployeeBookingController/unfinish/$1',
 		];
 
 		foreach ($expectations as $uri => $target) {

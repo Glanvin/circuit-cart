@@ -378,12 +378,22 @@ $config['checkout_guest'] = array(
 		)
 	),
 	array(
-		'field' => 'guest_address',
+		'field' => 'delivery_address',
 		'label' => 'Delivery Address',
 		'rules' => 'required|max_length[255]',
 		'errors' => array(
 			'required' => '%s is required for delivery',
 		)
+	),
+);
+
+// Signed-in shoppers may leave the address blank to fall back to their saved
+// account address, so it is optional here but still length-checked.
+$config['checkout_user'] = array(
+	array(
+		'field' => 'delivery_address',
+		'label' => 'Delivery Address',
+		'rules' => 'max_length[255]',
 	),
 );
 
@@ -427,16 +437,6 @@ $config['sku_create'] = array(
 		'label' => 'Stock Quantity',
 		'rules' => 'required|integer|greater_than_equal_to[0]',
 	),
-	array(
-		'field' => 'compatibility',
-		'label' => 'Compatibility',
-		'rules' => 'required',
-	),
-	array(
-		'field' => 'technical_specs',
-		'label' => 'Technical Specs',
-		'rules' => 'required',
-	),
 );
 
 $config['sku_edit'] = array(
@@ -465,16 +465,6 @@ $config['sku_edit'] = array(
 		'label' => 'Selling Price',
 		'rules' => 'required|numeric',
 	),
-	array(
-		'field' => 'compatibility',
-		'label' => 'Compatibility',
-		'rules' => 'required',
-	),
-	array(
-		'field' => 'technical_specs',
-		'label' => 'Technical Specs',
-		'rules' => 'required',
-	),
 );
 
 $config['add_stock'] = array(
@@ -482,5 +472,173 @@ $config['add_stock'] = array(
 		'field' => 'stock_quantity',
 		'label' => 'Stock Quantity',
 		'rules' => 'required|integer|greater_than_equal_to[0]',
+	),
+);
+
+$config['promo_create'] = array(
+	array(
+		'field' => 'code',
+		'label' => 'Code',
+		'rules' => 'required|max_length[32]|regex_match[/^[A-Za-z0-9\-_]+$/]|is_unique[tbl_promo_codes.code]',
+		'errors' => array(
+			'required' => '%s cannot be blank',
+			'regex_match' => '%s may only contain letters, numbers, hyphens and underscores',
+			'is_unique' => '%s already exists',
+		)
+	),
+	array(
+		'field' => 'discount_type',
+		'label' => 'Discount Type',
+		'rules' => 'required|in_list[percent,fixed]',
+	),
+	array(
+		'field' => 'discount_value',
+		'label' => 'Discount Value',
+		'rules' => 'required|numeric|greater_than[0]',
+	),
+	array(
+		'field' => 'min_subtotal',
+		'label' => 'Minimum Subtotal',
+		'rules' => 'numeric|greater_than_equal_to[0]',
+	),
+	array(
+		'field' => 'max_total_uses',
+		'label' => 'Maximum Total Uses',
+		'rules' => 'integer|greater_than_equal_to[0]',
+	),
+	array(
+		'field' => 'per_user_limit',
+		'label' => 'Per-User Limit',
+		'rules' => 'integer|greater_than_equal_to[0]',
+	),
+);
+
+$config['promo_edit'] = array(
+	array(
+		'field' => 'discount_type',
+		'label' => 'Discount Type',
+		'rules' => 'required|in_list[percent,fixed]',
+	),
+	array(
+		'field' => 'discount_value',
+		'label' => 'Discount Value',
+		'rules' => 'required|numeric|greater_than[0]',
+	),
+	array(
+		'field' => 'min_subtotal',
+		'label' => 'Minimum Subtotal',
+		'rules' => 'numeric|greater_than_equal_to[0]',
+	),
+	array(
+		'field' => 'max_total_uses',
+		'label' => 'Maximum Total Uses',
+		'rules' => 'integer|greater_than_equal_to[0]',
+	),
+	array(
+		'field' => 'per_user_limit',
+		'label' => 'Per-User Limit',
+		'rules' => 'integer|greater_than_equal_to[0]',
+	),
+);
+
+$config['service_create'] = array(
+	array(
+		'field' => 'name',
+		'label' => 'Service Name',
+		'rules' => 'required|trim|max_length[128]|is_unique[tbl_repair_services.name]',
+		'errors' => array(
+			'required' => '%s cannot be blank',
+			'max_length' => '%s is too long, maximum length is 128 characters',
+			'is_unique' => '%s already exists',
+		)
+	),
+	array(
+		'field' => 'description',
+		'label' => 'Description',
+		'rules' => 'trim|max_length[2000]',
+	),
+	array(
+		'field' => 'base_price',
+		'label' => 'Base Price',
+		'rules' => 'trim|numeric|greater_than_equal_to[0]',
+		'errors' => array(
+			'numeric' => '%s must be a number',
+			'greater_than_equal_to' => '%s cannot be negative',
+		)
+	),
+	array(
+		'field' => 'sort_order',
+		'label' => 'Sort Order',
+		'rules' => 'trim|integer|greater_than_equal_to[0]',
+		'errors' => array(
+			'integer' => '%s must be a whole number',
+			'greater_than_equal_to' => '%s cannot be negative',
+		)
+	),
+);
+
+$config['service_edit'] = array(
+	array(
+		'field' => 'name',
+		'label' => 'Service Name',
+		'rules' => 'required|trim|max_length[128]',
+		'errors' => array(
+			'required' => '%s cannot be blank',
+			'max_length' => '%s is too long, maximum length is 128 characters',
+		)
+	),
+	array(
+		'field' => 'description',
+		'label' => 'Description',
+		'rules' => 'trim|max_length[2000]',
+	),
+	array(
+		'field' => 'base_price',
+		'label' => 'Base Price',
+		'rules' => 'trim|numeric|greater_than_equal_to[0]',
+		'errors' => array(
+			'numeric' => '%s must be a number',
+			'greater_than_equal_to' => '%s cannot be negative',
+		)
+	),
+	array(
+		'field' => 'sort_order',
+		'label' => 'Sort Order',
+		'rules' => 'trim|integer|greater_than_equal_to[0]',
+		'errors' => array(
+			'integer' => '%s must be a whole number',
+			'greater_than_equal_to' => '%s cannot be negative',
+		)
+	),
+);
+
+$config['review_form'] = array(
+	array(
+		'field' => 'rating',
+		'label' => 'Rating',
+		'rules' => 'required|in_list[1,2,3,4,5]',
+		'errors' => array(
+			'required' => 'Please choose a rating from 1 to 5 stars',
+			'in_list' => 'Please choose a rating from 1 to 5 stars',
+		)
+	),
+	array(
+		'field' => 'title',
+		'label' => 'Review Title',
+		'rules' => 'required|trim|max_length[128]',
+		'errors' => array(
+			'required' => '%s cannot be blank',
+			'max_length' => '%s is too long, maximum length is 128 characters',
+		)
+	),
+	array(
+		'field' => 'body',
+		'label' => 'Review',
+		'rules' => 'required|trim|min_length[10]|max_length[2000]',
+		'errors' => array(
+			'required' => '%s cannot be blank',
+			'min_length' => '%s must be at least 10 characters long',
+			'max_length' => '%s is too long, maximum length is 2000 characters',
+		)
 	),
 );

@@ -1,6 +1,7 @@
 <div class="container-fluid p-4">
     <script id="pos-parts" type="application/json"><?= json_encode($parts) ?></script>
     <script id="pos-payment-methods" type="application/json"><?= json_encode($payment_methods) ?></script>
+    <script id="pos-tax-rates" type="application/json"><?= json_encode($tax_rates) ?></script>
 
     <div class="row g-4">
         <div class="col-lg-7">
@@ -64,7 +65,12 @@
             <div class="card shadow-sm">
                 <div class="card-header bg-white d-flex justify-content-between align-items-center">
                     <strong>Sale Cart</strong>
-                    <button type="button" class="btn btn-sm btn-outline-danger" id="posClear">Clear</button>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="posOpenRefund">
+                            <i class="bi bi-arrow-counterclockwise"></i> Refund / Void
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" id="posClear">Clear</button>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -123,6 +129,67 @@
             <div class="modal-body" id="posReceiptBody"></div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-primary w-100" data-bs-dismiss="modal" id="posReceiptClose">New Sale</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="posRefundModal" tabindex="-1" aria-labelledby="posRefundModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="posRefundModalLabel">Refund / Void</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="posRefundList">
+                    <div class="input-group mb-3">
+                        <input type="text" class="form-control" id="posRefundSearch" placeholder="Receipt number, e.g. ST-20260101-AB12C" autocomplete="off">
+                        <button class="btn btn-outline-primary" type="button" id="posRefundLookup">Look up</button>
+                        <button class="btn btn-outline-secondary" type="button" id="posRefundRecent">Recent</button>
+                    </div>
+                    <div id="posRefundAlert"></div>
+                    <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th scope="col">Receipt</th>
+                                    <th scope="col">Items</th>
+                                    <th class="text-end" scope="col">Total</th>
+                                    <th scope="col">Status</th>
+                                    <th class="text-end" scope="col">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="posRefundListBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="posRefundConfirm" style="display: none;">
+                    <button type="button" class="btn btn-sm btn-link px-0" id="posRefundBack"><i class="bi bi-arrow-left"></i> Back to sales</button>
+                    <div id="posRefundSummary" class="border rounded p-3 my-2 bg-body-tertiary"></div>
+                    <div class="mb-3">
+                        <label class="form-label" for="posRefundMode">Action</label>
+                        <select class="form-select" id="posRefundMode">
+                            <option value="refund">Refund (money returned)</option>
+                            <option value="void">Void (reverse before close)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="posRefundReason">Reason</label>
+                        <textarea class="form-control" id="posRefundReason" rows="2" placeholder="Reason for the reversal"></textarea>
+                    </div>
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" id="posRefundRestock" checked>
+                        <label class="form-check-label" for="posRefundRestock">Return items to stock</label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label" for="posRefundApproverPin">Manager/Admin PIN</label>
+                        <input type="password" class="form-control" id="posRefundApproverPin" inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="off" aria-describedby="posRefundPinHelp" required>
+                        <div id="posRefundPinHelp" class="form-text">A manager or admin must enter their 6-digit PIN to authorize this action.</div>
+                    </div>
+                    <button type="button" class="btn btn-danger w-100" id="posRefundSubmit">Confirm Reversal</button>
+                </div>
             </div>
         </div>
     </div>

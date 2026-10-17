@@ -31,12 +31,11 @@
                     <?php endif; ?>
                 </li>
             </ul>
-            <form class="d-flex flex-grow-1 flex-lg-grow-0 navbar-search me-lg-4" role="search">
-                <input aria-label="Search" class="form-control me-2" placeholder="search" type="search">
+            <form action="<?= site_url('browse') ?>" method="get" class="d-flex flex-grow-1 flex-lg-grow-0 navbar-search me-lg-4" role="search">
+                <input aria-label="Search parts and devices" class="form-control me-2" name="q" value="<?= html_escape($this->input->get('q', true) ?? '') ?>" placeholder="Search parts" type="search">
                     <button class="btn btn-outline-primary" type="submit">
                         Search
                     </button>
-                </input>
             </form>
             <div class="d-flex align-items-center gap-2 ms-lg-2">
                 <?php
@@ -50,6 +49,9 @@
                 <span id="cart-badge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger <?= $cartCount > 0 ? '' : 'd-none' ?>"><?= $cartCount ?></span>
             </a>
                 <?php if ($this->session->userdata('username')): ?>
+                <a href="<?= site_url('wishlist') ?>" class="nav-link px-2 me-3" aria-label="My wishlist">
+                    <i class="bi bi-heart fs-5"></i>
+                </a>
                 <div class="dropdown">
                     <button class="btn btn-link nav-link dropdown-toggle d-flex align-items-center" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-person-circle fs-5 me-1"></i>
@@ -57,6 +59,7 @@
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                         <li><a class="dropdown-item" href="<?= site_url('orders') ?>">My Orders</a></li>
+                        <li><a class="dropdown-item" href="<?= site_url('wishlist') ?>">My Wishlist</a></li>
                         <li><a class="dropdown-item" href="<?= site_url('booking/appointments') ?>">My Appointments</a></li>
                         <li><a class="dropdown-item" href="<?= site_url('settings') ?>">Settings</a></li>
                         <li><hr class="dropdown-divider"></li>

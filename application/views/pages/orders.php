@@ -46,7 +46,9 @@
                                 </td>
                                 <td>
                                     <?php
-                                    $items = json_decode($order['items'] ?? '[]', true);
+                                    $items = is_array($order['items'] ?? NULL)
+                                        ? $order['items']
+                                        : (json_decode($order['items'] ?? '[]', true) ?: []);
                                     $names = array_column($items, 'name');
                                     echo html_escape(implode(', ', $names));
                                     ?>
@@ -54,6 +56,11 @@
                                 <td class="text-end fw-bold"><?= '₱' . number_format($order['total'], 2) ?></td>
                                 <td class="text-end">
                                     <a href="<?= site_url('orders/view/' . $order['id']) ?>" class="btn btn-sm btn-outline-primary">View</a>
+                                    <?php if ($order['status'] === 'processing'): ?>
+                                        <?= form_open('orders/cancel/' . $order['id'], ['class' => 'd-inline', 'onsubmit' => "return confirm('Cancel this order? The items will be returned to stock.');"]) ?>
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
+                                        <?= form_close() ?>
+                                    <?php endif; ?>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

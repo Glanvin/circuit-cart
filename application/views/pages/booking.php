@@ -14,6 +14,23 @@
                     <?= form_error('device', '<div class="invalid-feedback">', '</div>') ?>
                 </div>
 
+                <?php if (!empty($services)): ?>
+                    <div class="mb-3">
+                        <label class="form-label" for="service_id">Service</label>
+                        <select class="form-select" id="service_id" name="service_id">
+                            <option value="">Not sure / other</option>
+                            <?php foreach ($services as $service): ?>
+                                <option value="<?= (int) $service['id'] ?>" data-price="<?= html_escape(number_format((float) $service['base_price'], 2, '.', '')) ?>" <?= set_select('service_id', (string) $service['id']) ?>>
+                                    <?= html_escape($service['name']) ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <div class="form-text text-body-secondary" id="service-hint">
+                            Optional. Choose the service you think you need; the final price is confirmed after diagnosis.
+                        </div>
+                    </div>
+                <?php endif; ?>
+
                 <div class="mb-3">
                     <label class="form-label" for="issue">Brief Issue Description*</label>
                     <textarea class="form-control <?= is_invalid('issue') ?>" id="issue" name="issue" rows="4" placeholder="e.g. Screen is cracked and the touch sometimes stops responding."><?= set_value('issue') ?></textarea>
@@ -55,6 +72,22 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const serviceSelect = document.getElementById('service_id');
+    const serviceHint = document.getElementById('service-hint');
+
+    if (serviceSelect && serviceHint) {
+        serviceSelect.addEventListener('change', function() {
+            const option = this.options[this.selectedIndex];
+            const price = option ? option.getAttribute('data-price') : null;
+
+            if (this.value && price && parseFloat(price) > 0) {
+                serviceHint.textContent = 'Base price from ₱' + price + '. Final price is confirmed after diagnosis.';
+            } else {
+                serviceHint.textContent = 'Optional. Choose the service you think you need; the final price is confirmed after diagnosis.';
+            }
+        });
+    }
+
     const dateInput = document.getElementById('preferred_date');
     const timeSelect = document.getElementById('preferred_time');
     const loadingEl = document.getElementById('slot-loading');

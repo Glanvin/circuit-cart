@@ -145,6 +145,96 @@ function send_booking_notification(string $username, string $subject, string $me
 }
 
 /*
+ * Emails a customer their repair estimate with a link to the review page,
+ * derived from the job's estimate token. Failures are swallowed so the
+ * technician's diagnose action never fails because of email delivery.
+ */
+function send_repair_estimate_email(string $username, array $job, string $review_url): void
+{
+    $CI =& get_instance();
+
+    try {
+        $user = $CI->UserModel->findUserByUsername($username);
+
+        if (empty($user['email'])) {
+            return;
+        }
+
+        deliver_email(
+            'emails/repair_estimate_email',
+            [
+                'subject' => 'Your Repair Estimate - Circuit Cart',
+                'greeting' => 'Hello ' . ucfirst($username) . ',',
+                'job' => $job,
+                'review_url' => $review_url,
+                'status_url' => site_url('repair/status/' . $job['public_token']),
+            ],
+            $user['email'],
+            'Your Repair Estimate - Circuit Cart'
+        );
+    } catch (Exception $e) {
+        // Ignore: saving the estimate must still succeed if email fails.
+    }
+}
+
+//Sends the online order confirmation email, swallowing delivery failures so
+//placing an order never breaks.
+function send_order_confirmation_email(array $sale): void
+{
+    try {
+        $email = (string) ($sale['customer_email'] ?? '');
+        if ($email === '') {
+            return;
+        }
+
+        deliver_email(
+            'emails/order_confirmation',
+            [
+                'subject' => 'Order Confirmed - ' . ($sale['receipt_no'] ?? ''),
+                'greeting' => 'Thank you for your order!',
+                'message' => 'We have received your order and it is now being processed.',
+                'sale' => $sale,
+            ],
+            $email,
+            'Order Confirmed - ' . ($sale['receipt_no'] ?? '')
+        );
+    } catch (Exception $e) {
+        // Ignore: the order itself should still succeed.
+    }
+}
+
+//Sends an order status update email, swallowing delivery failures.
+function send_order_status_email(array $sale, string $newStatus): void
+{
+    try {
+        $email = (string) ($sale['customer_email'] ?? '');
+        if ($email === '') {
+            return;
+        }
+
+        $messages = [
+            'shipped' => 'Your order has shipped and is on its way.',
+            'delivered' => 'Your order has been delivered. Thank you!',
+            'cancelled' => 'Your order has been cancelled.',
+        ];
+
+        deliver_email(
+            'emails/order_status',
+            [
+                'subject' => 'Order Update - ' . ($sale['receipt_no'] ?? ''),
+                'greeting' => 'Order status update',
+                'message' => $messages[$newStatus] ?? 'Your order status has changed.',
+                'sale' => $sale,
+            ],
+            $email,
+            'Order Update - ' . ($sale['receipt_no'] ?? '')
+        );
+    } catch (Exception $e) {
+        // Ignore: the status change should still succeed.
+    }
+}
+
+/*
  * Generates a 6-digit verification code, emails the plaintext version, then
  * stores only its hash plus expiry in the session. Returns false on failure.
  */
@@ -213,4 +303,26 @@ function cart_items(): array
     $cart = $CI->session->userdata('cart_items');
 
     return is_array($cart) ? $cart : [];
+}
+
+//Returns a product image URL. Product photos are stored locally under storage/products.
+function product_image_url(?string $path): string
+{
+    if ($path === NULL || $path === '') return '';
+    return base_url(ltrim($path, '/'));
+}
+
+//Attribution metadata for the Wikimedia Commons sample catalog photos.
+function product_image_attribution(?string $path): ?array
+{
+    if (strpos((string) $path, 'phone-battery.jpg') !== FALSE) {
+        return ['author' => 'Esthee2010', 'license' => 'CC BY-SA 4.0', 'url' => 'https://commons.wikimedia.org/wiki/File:Phone_battery.jpg'];
+    }
+    if (strpos((string) $path, 'samsung-phone-battery.jpg') !== FALSE) {
+        return ['author' => 'Dmitry G', 'license' => 'CC BY-SA 3.0', 'url' => 'https://commons.wikimedia.org/wiki/File:Samsung_mobile_phone_battery.JPG'];
+    }
+    if (strpos((string) $path, 'lenovo-65w-adapter.jpg') !== FALSE) {
+        return ['author' => 'Neozoon', 'license' => 'CC0', 'url' => 'https://commons.wikimedia.org/wiki/File:Lenovo_Power_Adapter_AC_65W_20V.jpg'];
+    }
+    return NULL;
 }

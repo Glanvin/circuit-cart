@@ -10,10 +10,46 @@ class EmployeeSettingsController extends MY_Controller {
 	//Employees manage their own profile, email (with verification) and password.
 	public function index()
 	{
+		$employee = $this->currentEmployee();
+		$refundPinConfigured = !empty($employee['refund_pin_hash']);
+		unset($employee['refund_pin_hash']);
+
 		$this->render('pages/employees/settings', [
 			'title' => 'Settings',
-			'employee' => $this->currentEmployee(),
+			'employee' => $employee,
+			'refund_pin_configured' => $refundPinConfigured,
 		]);
+	}
+
+	//Lets a manager or admin set or replace their own refund PIN after
+	//confirming their account password. The PIN is stored as a one-way hash.
+	public function updateRefundPin()
+	{
+		$employee = $this->currentEmployee();
+		if (!in_array($employee['role'] ?? '', ['manager', 'admin'], TRUE)) {
+			$this->toastify->error('Only managers and admins can configure a refund PIN.');
+			redirect('employee/settings', 'refresh');
+			return;
+		}
+
+		$currentPassword = (string) $this->input->post('current_password', TRUE);
+		$pin = (string) $this->input->post('refund_pin', TRUE);
+		$confirmation = (string) $this->input->post('confirm_refund_pin', TRUE);
+
+		if (!password_verify($currentPassword, $employee['password'])) {
+			$this->toastify->error('Current password is incorrect.');
+		} elseif (!preg_match('/^\d{6}$/', $pin)) {
+			$this->toastify->error('Refund PIN must be exactly 6 digits.');
+		} elseif (!hash_equals($pin, $confirmation)) {
+			$this->toastify->error('Refund PIN confirmation does not match.');
+		} else {
+			$this->EmployeeModel->updateEmployee($employee['employee_id'], [
+				'refund_pin_hash' => password_hash($pin, PASSWORD_DEFAULT),
+			]);
+			$this->toastify->success('Refund PIN updated.');
+		}
+
+		redirect('employee/settings', 'refresh');
 	}
 
 	/*

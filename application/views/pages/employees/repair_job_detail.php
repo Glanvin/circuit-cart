@@ -49,9 +49,22 @@
                         <div class="col-md-6">
                             <strong>Technician</strong><br>
                             <?php if (!empty($job['technician_id'])): ?>
-                                <?= html_escape(($job['tech_firstname'] ?? '') . ' ' . ($job['tech_lastname'] ?? '')) ?>
+                                <?= html_escape(trim(($job['tech_firstname'] ?? '') . ' ' . ($job['tech_lastname'] ?? ''))) ?>
                             <?php else: ?>
                                 <span class="text-muted">Unassigned</span>
+                            <?php endif; ?>
+                            <?php if (!in_array($job['status'], ['completed', 'cancelled'])): ?>
+                                <?= form_open('repair/jobs/assign/' . $job['id'], ['class' => 'mt-2 d-flex gap-2']) ?>
+                                    <select class="form-select form-select-sm" name="technician_id" aria-label="Assign technician">
+                                        <option value="">— Unassigned —</option>
+                                        <?php foreach ($technicians as $tech): ?>
+                                            <option value="<?= (int) $tech['employee_id'] ?>" <?= (int) $job['technician_id'] === (int) $tech['employee_id'] ? 'selected' : '' ?>>
+                                                <?= html_escape($tech['firstname'] . ' ' . $tech['lastname']) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                    <button type="submit" class="btn btn-sm btn-outline-primary text-nowrap">Assign</button>
+                                <?= form_close() ?>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -276,7 +289,7 @@
                 </div>
                 <div class="card-body">
                     <div class="d-grid gap-2">
-                        <?php if ($job['status'] === 'diagnosis' || $job['status'] === 'estimate_pending'): ?>
+                        <?php if (in_array($job['status'], ['diagnosis', 'estimate_pending', 'approved'])): ?>
                             <?= form_open('repair/jobs/status/' . $job['id']) ?>
                                 <input type="hidden" name="status" value="in_progress">
                                 <input type="hidden" name="note" value="Started repair work">
@@ -292,7 +305,18 @@
 
                         <?php if ($job['status'] === 'ready_for_pickup'): ?>
                             <?= form_open('repair/jobs/pickup/' . $job['id']) ?>
-                                <button type="submit" class="btn btn-dark">Mark Picked Up</button>
+                                <?php if (($totals['balance'] ?? 0) > 0.001): ?>
+                                    <div class="alert alert-warning small mb-2">
+                                        Outstanding balance: <strong>₱ <?= number_format($totals['balance'], 2) ?></strong>. Collect payment before releasing the device.
+                                    </div>
+                                    <?php if (in_array((string) $this->session->userdata('employee_role'), ['admin', 'manager'], true)): ?>
+                                        <div class="form-check mb-2">
+                                            <input class="form-check-input" type="checkbox" value="1" id="onAccount" name="on_account">
+                                            <label class="form-check-label small" for="onAccount">Release on account (manager/admin override)</label>
+                                        </div>
+                                    <?php endif; ?>
+                                <?php endif; ?>
+                                <button type="submit" class="btn btn-dark w-100">Mark Picked Up</button>
                             <?= form_close() ?>
                         <?php endif; ?>
 
@@ -300,9 +324,69 @@
                             <hr>
                             <?= form_open('repair/jobs/status/' . $job['id']) ?>
                                 <input type="hidden" name="status" value="cancelled">
-                                <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('Cancel this repair job?')">Cancel Job</button>
+                                <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('Cancel this repair job? Any parts recorded on the job will be returned to stock.')">Cancel Job</button>
                             <?= form_close() ?>
                         <?php endif; ?>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payments -->
+            <div class="card shadow-sm mt-3">
+                <div class="card-header bg-body d-flex justify-content-between align-items-center">
+                    <strong>Payments</strong>
+                    <?php if (!in_array($job['status'], ['completed', 'cancelled'])): ?>
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#recordPaymentModal">Record Payment</button>
+                    <?php endif; ?>
+                </div>
+                <div class="card-body">
+                    <?php if (!empty($payments)): ?>
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-2">
+                                <thead class="bg-body">
+                                    <tr>
+                                        <th scope="col">Date</th>
+                                        <th scope="col">Tender</th>
+                                        <th scope="col" class="text-end">Amount</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($payments as $payment): ?>
+                                        <tr>
+                                            <td class="text-nowrap small"><?= date('M j, Y', strtotime($payment['created_at'])) ?></td>
+                                            <td class="small">
+                                                <span class="badge text-bg-<?= $payment['kind'] === 'deposit' ? 'info' : 'success' ?>"><?= ucfirst($payment['kind']) ?></span>
+                                                <?php if (!empty($payment['method_name'])): ?>
+                                                    <div class="text-muted"><?= html_escape($payment['method_name']) ?><?= !empty($payment['reference']) ? ' · ' . html_escape($payment['reference']) : '' ?></div>
+                                                <?php elseif (!empty($payment['reference'])): ?>
+                                                    <div class="text-muted"><?= html_escape($payment['reference']) ?></div>
+                                                <?php endif; ?>
+                                                <?php if (!empty($payment['emp_firstname'])): ?>
+                                                    <div class="text-muted">by <?= html_escape(trim($payment['emp_firstname'] . ' ' . ($payment['emp_lastname'] ?? ''))) ?></div>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td class="text-end fw-bold">₱ <?= number_format($payment['amount'], 2) ?></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    <?php else: ?>
+                        <p class="text-muted text-center py-3 mb-0">No payments recorded yet.</p>
+                    <?php endif; ?>
+
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Recorded Total</span>
+                        <span>₱ <?= number_format($totals['recorded'], 2) ?></span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span>Paid</span>
+                        <span>₱ <?= number_format($totals['paid'], 2) ?></span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between fw-bold text-<?= $totals['balance'] > 0.001 ? 'danger' : 'success' ?>">
+                        <span>Balance Due</span>
+                        <span>₱ <?= number_format($totals['balance'], 2) ?></span>
                     </div>
                 </div>
             </div>
@@ -442,6 +526,55 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary">Add Note</button>
+                    </div>
+                <?= form_close() ?>
+            </div>
+        </div>
+    </div>
+
+    <!-- Record Payment Modal -->
+    <div class="modal fade" id="recordPaymentModal" tabindex="-1" aria-labelledby="recordPaymentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <?= form_open('repair/jobs/payment/' . $job['id']) ?>
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="recordPaymentModalLabel">Record Payment</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label" for="paymentAmount">Amount (₱)</label>
+                            <input type="number" class="form-control" id="paymentAmount" name="amount" step="0.01" min="0.01" required>
+                            <?php if (($totals['balance'] ?? 0) > 0.001): ?>
+                                <div class="form-text">Remaining balance: ₱ <?= number_format($totals['balance'], 2) ?>.</div>
+                            <?php endif; ?>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="paymentKind">Type</label>
+                            <select class="form-select" id="paymentKind" name="kind">
+                                <option value="payment">Payment</option>
+                                <option value="deposit">Deposit</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="paymentMethod">Payment Method</label>
+                            <select class="form-select" id="paymentMethod" name="method_id">
+                                <option value="">— Not specified —</option>
+                                <?php foreach ($payment_methods as $method): ?>
+                                    <option value="<?= (int) $method['id'] ?>" data-requires-ref="<?= (int) $method['requires_ref'] ?>">
+                                        <?= html_escape($method['name']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="paymentReference">Reference</label>
+                            <input type="text" class="form-control" id="paymentReference" name="reference" maxlength="64" placeholder="Optional reference / transaction no.">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save Payment</button>
                     </div>
                 <?= form_close() ?>
             </div>

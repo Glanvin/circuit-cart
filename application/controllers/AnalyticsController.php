@@ -104,15 +104,36 @@ class AnalyticsController extends MY_Controller {
 				return;
 			}
 
-			$this->SalesModel->updateStatus($order_id, $status);
+			if ($status === 'cancelled') {
+				//Cancelling restocks the order's lines through the model.
+				$this->SalesModel->cancelOrder(
+					$order_id,
+					(int) $this->session->userdata('employee_id'),
+					'Cancelled by staff',
+					['processing', 'shipped']
+				);
+			} else {
+				if (in_array($order['status'], ['cancelled', 'refunded', 'voided'], true)) {
+					throw new AppException('D06');
+				}
+
+				$this->SalesModel->updateStatus($order_id, $status);
+			}
+
 			$this->toastify->success('Order marked as ' . $status . '.');
+
+			try {
+				$updated = $this->SalesModel->getSaleById($order_id);
+				send_order_status_email($updated, $status);
+			} catch (Exception $e) {
+				// Email failures must not block fulfilment.
+			}
 		} catch (AppException $e) {
 			$this->toastify->error($e->toToast());
 		}
 
 		redirect('employee/orders', 'refresh');
 	}
-
 	//Validates the ?days= selector against the allowed options.
 	private function requestedDays(): int
 	{

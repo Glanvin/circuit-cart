@@ -65,6 +65,27 @@ class EmployeeModel extends CI_Model {
         return $query->num_rows() > 0 ? $query->row_array() : NULL;
     }
 
+    //Checks a refund PIN against active manager/admin accounts and returns the
+    //authorizing employee ID. Stored hashes are never exposed.
+    public function verifyRefundApproverPin(string $pin): ?int {
+        $this->db->select('employee_id, refund_pin_hash');
+        $this->db->where_in('role', ['manager', 'admin']);
+        $this->db->where('is_active', 1);
+        $query = $this->db->get('tbl_employees');
+
+        if (!$query) {
+            throw new AppException('Q07');
+        }
+
+        foreach ($query->result_array() as $manager) {
+            if (!empty($manager['refund_pin_hash']) && password_verify($pin, $manager['refund_pin_hash'])) {
+                return (int) $manager['employee_id'];
+            }
+        }
+
+        return NULL;
+    }
+
     public function createEmployee($data) {
         if (empty($data)) {
             throw new AppException('D01');

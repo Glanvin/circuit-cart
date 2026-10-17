@@ -14,13 +14,13 @@
                         $lineTotal = $item['price'] * $item['quantity'];
                         $subtotal += $lineTotal;
                     ?>
-                    <div class="row cart-item mb-3" data-part-id="<?= (int) $item['part_id'] ?>">
+                    <div class="row cart-item mb-3" data-part-id="<?= (int) $item['part_id'] ?>" data-price="<?= (float) $item['price'] ?>">
                         <div class="col-md-3 d-flex align-items-center">
-                            <input type="checkbox" class="cart-item-check me-3" checked data-price="<?= (float) $item['price'] ?>" data-quantity="<?= (int) $item['quantity'] ?>">
-                            <svg class="bd-placeholder-img rounded" width="100%" height="100" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="No Image" preserveAspectRatio="xMidYMid slice" focusable="false">
-                                <rect width="100%" height="100%" fill="#dee2e6"></rect>
-                                <text x="50%" y="50%" fill="#6c757d" dy=".3em" text-anchor="middle">Image</text>
-                            </svg>
+                            <?php if (!empty($item['image_path'])): ?>
+                                <img src="<?= html_escape(product_image_url($item['image_path'])) ?>" class="rounded border object-fit-cover" width="100" height="100" alt="<?= html_escape($item['name']) ?>" loading="lazy">
+                            <?php else: ?>
+                                <div class="rounded border bg-body-tertiary d-flex align-items-center justify-content-center" style="width:100px;height:100px" aria-hidden="true"><i class="bi bi-image fs-2 text-secondary"></i></div>
+                            <?php endif; ?>
                         </div>
                         <div class="col-md-5">
                             <h5 class="card-title"><?= html_escape($item['name']) ?></h5>
@@ -60,19 +60,7 @@
                         <span>Subtotal</span>
                         <span id="cart-subtotal">₱ <?= number_format($subtotal, 2) ?></span>
                     </div>
-                    <div class="d-flex justify-content-between mb-3">
-                        <span>Shipping</span>
-                        <span id="cart-shipping">₱ 10.00</span>
-                    </div>
-                    <div class="d-flex justify-content-between mb-3">
-                        <span>Tax</span>
-                        <span id="cart-tax">₱ 20.00</span>
-                    </div>
-                    <hr>
-                    <div class="d-flex justify-content-between mb-4">
-                        <strong>Total</strong>
-                        <strong id="cart-total">₱ <?= number_format($subtotal + 30.00, 2) ?></strong>
-                    </div>
+                    <p class="small text-secondary mb-3">Shipping and tax are calculated at checkout.</p>
                     <a href="<?= site_url('checkout') ?>" id="checkout-btn" class="btn btn-primary w-100">Proceed to Checkout</a>
                 </div>
             </div>
@@ -80,10 +68,24 @@
             <div class="card mt-4">
                 <div class="card-body">
                     <h5 class="card-title mb-3">Apply Promo Code</h5>
-                    <div class="input-group mb-3">
-                        <input type="text" class="form-control" placeholder="Enter promo code">
-                        <button class="btn btn-outline-secondary" type="button">Apply</button>
-                    </div>
+                    <?php if (!empty($promo_code)): ?>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <span class="badge text-bg-success"><?= html_escape($promo_code) ?></span>
+                                <div class="small text-secondary mt-1">Discount applied at checkout.</div>
+                            </div>
+                            <?= form_open('cart/promo/remove', ['class' => 'mb-0']) ?>
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                            <?= form_close() ?>
+                        </div>
+                    <?php else: ?>
+                        <?= form_open('cart/promo', ['class' => 'mb-0']) ?>
+                            <div class="input-group">
+                                <input type="text" class="form-control" name="promo_code" placeholder="Enter promo code" value="<?= set_value('promo_code') ?>" maxlength="32">
+                                <button class="btn btn-outline-secondary" type="submit">Apply</button>
+                            </div>
+                        <?= form_close() ?>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>

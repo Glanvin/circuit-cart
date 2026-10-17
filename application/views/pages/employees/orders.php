@@ -51,15 +51,18 @@
             <tbody class="table-group-divider">
                 <?php if (!empty($orders)): ?>
                     <?php foreach ($orders as $order): ?>
-                        <?php $items = json_decode($order['items'] ?? '[]', true); ?>
+                        <?php
+                        $orderItems = $order['items'] ?? [];
+                        $items = is_array($orderItems) ? $orderItems : (json_decode((string) $orderItems, true) ?: []);
+                        ?>
                         <tr>
                             <th scope="row" class="font-monospace"><?= html_escape($order['receipt_no']) ?></th>
                             <td class="text-nowrap"><?= date('M j, Y h:i A', strtotime($order['created_at'])) ?></td>
                             <td><?= html_escape($order['customer_email']) ?><br><small class="text-muted"><?= html_escape($order['sold_by'] ?? 'Guest') ?></small></td>
                             <td class="text-start" style="max-width: 240px;"><?= html_escape($order['customer_address']) ?></td>
                             <td class="text-start" style="max-width: 240px;">
-                                <?php foreach ((array) $items as $item): ?>
-                                    <small><?= html_escape($item['name']) ?> &times; <?= (int) $item['qty'] ?></small><br>
+                                <?php foreach ($items as $item): ?>
+                                    <small><?= html_escape($item['name'] ?? 'Item') ?> &times; <?= (int) ($item['qty'] ?? 0) ?></small><br>
                                 <?php endforeach; ?>
                             </td>
                             <td class="text-end text-nowrap">₱ <?= number_format((float) $order['total'], 2) ?></td>

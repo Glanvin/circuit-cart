@@ -36,15 +36,16 @@ class BookingController extends MY_Controller {
 						return;
 					}
 
-					$this->BookingModel->createBooking(array_merge([
+					$this->BookingModel->createBooking([
 						'username' => $this->session->userdata('username'),
+						'service_id' => $this->resolveServiceId(),
 						'device' => $this->input->post('device', true),
 						'issue' => $this->input->post('issue', true),
 						'preferred_date' => $preferredDate,
 						'preferred_time' => $slot['start_time'],  //Normalize to slot start time
 						'status' => 'pending',
 						'images' => $uploads ? json_encode($uploads) : NULL,
-					]));
+					]);
 
 					$this->toastify->success('Your repair booking has been submitted. You will receive an email once it is reviewed.');
 					$this->notifyPending();
@@ -66,9 +67,13 @@ class BookingController extends MY_Controller {
 	public function appointments()
 	{
 		$bookings = [];
+		$jobs = [];
 
 		try {
 			$bookings = $this->BookingModel->getBookingsByUsername($this->session->userdata('username'));
+
+			$ids = array_map(static fn($b) => (int) $b['id'], $bookings);
+			$jobs = $this->RepairJobModel->getJobsByBookingIds($ids);
 		} catch (AppException $e) {
 			$this->toastify->error($e->toToast());
 		}
@@ -76,7 +81,73 @@ class BookingController extends MY_Controller {
 		$this->render('pages/my_appointments', [
 			'title' => 'My Appointments',
 			'bookings' => $bookings,
+			'jobs' => $jobs,
 		]);
+	}
+
+	//Cancels the signed-in user's own booking and notifies them.
+	public function cancel(int $booking_id)
+	{
+		try {
+			$booking = $this->BookingModel->cancelBookingByCustomer(
+				$booking_id,
+				$this->session->userdata('username'),
+				(string) $this->input->post('reason', true)
+			);
+
+			send_booking_notification(
+				$booking['username'],
+				'Appointment Cancelled - Circuit Cart',
+				'Your repair appointment has been cancelled. If this was a mistake, you can book a new appointment any time.',
+				booking_details($booking)
+			);
+
+			$this->toastify->success('Your appointment has been cancelled.');
+		} catch (AppException $e) {
+			$this->toastify->error($e->toToast());
+		}
+
+		redirect('booking/appointments', 'refresh');
+	}
+
+	//Reschedules the signed-in user's own pending booking to a new slot.
+	public function reschedule(int $booking_id)
+	{
+		$date = (string) $this->input->post('preferred_date', true);
+		$time = (string) $this->input->post('preferred_time', true);
+
+		//Browsers submit <input type="time"> as HH:MM; seconds are rejected.
+		$dateOk = preg_match('/^\d{4}-\d{2}-\d{2}$/', $date) === 1
+			&& (bool) DateTimeImmutable::createFromFormat('Y-m-d', $date);
+		$timeOk = preg_match('/^(?:[01]\d|2[0-3]):[0-5]\d$/', $time) === 1;
+
+		if (!$dateOk || !$timeOk) {
+			$this->toastify->error('Please provide a valid new date and time.');
+			redirect('booking/appointments', 'refresh');
+			return;
+		}
+
+		try {
+			$booking = $this->BookingModel->rescheduleBookingByCustomer(
+				$booking_id,
+				$this->session->userdata('username'),
+				$date,
+				substr($time, 0, 5)
+			);
+
+			send_booking_notification(
+				$booking['username'],
+				'Appointment Rescheduled - Circuit Cart',
+				'Your repair appointment request has been moved to a new date and time. Please take note of the updated schedule.',
+				booking_details($booking)
+			);
+
+			$this->toastify->success('Your appointment has been rescheduled.');
+		} catch (AppException $e) {
+			$this->toastify->error($e->toToast());
+		}
+
+		redirect('booking/appointments', 'refresh');
 	}
 
 	/*
@@ -165,10 +236,45 @@ class BookingController extends MY_Controller {
 		}
 	}
 
+	/*
+	 * Returns a validated active service id from POST, or NULL when none was
+	 * chosen. A forged or deactivated id is ignored rather than trusted, so a
+	 * client can never attach an arbitrary service row to a booking.
+	 */
+	private function resolveServiceId(): ?int
+	{
+		$service_id = (int) $this->input->post('service_id', true);
+
+		if ($service_id <= 0) {
+			return NULL;
+		}
+
+		try {
+			$service = $this->RepairServiceModel->getServiceById($service_id);
+		} catch (AppException $e) {
+			return NULL;
+		}
+
+		return (int) $service['is_active'] === 1 ? $service_id : NULL;
+	}
+
 	//Renders the booking form page.
 	private function renderForm(): void
 	{
-		$this->render('pages/booking', ['title' => 'Book a Repair']);
+		$services = [];
+
+		//The service catalog is optional; a missing table must not block a
+		//booking, so a failure simply leaves the select empty.
+		try {
+			$services = $this->RepairServiceModel->getActiveServices();
+		} catch (AppException $e) {
+			$services = [];
+		}
+
+		$this->render('pages/booking', [
+			'title' => 'Book a Repair',
+			'services' => $services,
+		]);
 	}
 
 	//Emails the "booking received" confirmation to the owner.

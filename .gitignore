@@ -14,12 +14,20 @@ tests/mocks/database/ci_test.sqlite
 storage/*
 !storage/booking/index.html
 !storage/bugs/index.html
+!storage/products/
+!storage/products/index.html
+!storage/products/.htaccess
 
 user_guide_src/build/*
 user_guide_src/cilexer/build/*
 user_guide_src/cilexer/dist/*
 user_guide_src/cilexer/pycilexer.egg-info/*
 /vendor/
+
+# AI assistant tooling (local only)
+#-------------------------
+/.agents/
+/.opencode/
 
 # IDE Files
 #-------------------------

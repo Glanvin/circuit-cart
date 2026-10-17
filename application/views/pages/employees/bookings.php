@@ -11,7 +11,9 @@
                 <option value="pending" <?= ($status ?? '') === 'pending' ? 'selected' : '' ?>>Pending</option>
                 <option value="approved" <?= ($status ?? '') === 'approved' ? 'selected' : '' ?>>Approved</option>
                 <option value="rescheduled" <?= ($status ?? '') === 'rescheduled' ? 'selected' : '' ?>>Rescheduled</option>
+                <option value="picked" <?= ($status ?? '') === 'picked' ? 'selected' : '' ?>>Picked Up</option>
                 <option value="declined" <?= ($status ?? '') === 'declined' ? 'selected' : '' ?>>Declined</option>
+                <option value="cancelled" <?= ($status ?? '') === 'cancelled' ? 'selected' : '' ?>>Cancelled</option>
                 <option value="finished" <?= ($status ?? '') === 'finished' ? 'selected' : '' ?>>Finished</option>
             </select>
             <label class="form-label mb-0 text-nowrap" for="sortFilter">Sort</label>
@@ -43,7 +45,7 @@
             <tbody class="table-group-divider">
                 <?php if (!empty($bookings)): ?>
                     <?php foreach ($bookings as $booking): ?>
-                        <?php $locked = in_array($booking['status'], ['declined', 'finished']); ?>
+                        <?php $job = $jobs[$booking['id']] ?? NULL; ?>
                         <tr>
                             <th scope="row"><?= html_escape($booking['id']) ?></th>
                             <td><?= html_escape($booking['username']) ?></td>
@@ -58,8 +60,12 @@
                                     <span class="badge text-bg-success">Approved</span>
                                 <?php elseif ($booking['status'] === 'rescheduled'): ?>
                                     <span class="badge text-bg-primary">Rescheduled</span>
+                                <?php elseif ($booking['status'] === 'picked'): ?>
+                                    <span class="badge text-bg-info">Picked Up</span>
                                 <?php elseif ($booking['status'] === 'declined'): ?>
                                     <span class="badge text-bg-danger">Declined</span>
+                                <?php elseif ($booking['status'] === 'cancelled'): ?>
+                                    <span class="badge text-bg-danger">Cancelled</span>
                                 <?php elseif ($booking['status'] === 'finished'): ?>
                                     <span class="badge text-bg-dark">Finished</span>
                                 <?php else: ?>
@@ -80,9 +86,48 @@
                                     <?php endif; ?>
                                 <?php endforeach; ?>
                             </td>
-                            <?php if ($locked): ?>
+                            <?php if (in_array($booking['status'], ['declined', 'cancelled'])): ?>
                                 <td colspan="4" class="text-muted small">
                                     <i class="bi bi-lock me-1"></i>Closed
+                                </td>
+                            <?php elseif ($booking['status'] === 'finished'): ?>
+                                <td colspan="4">
+                                    <div class="d-flex flex-wrap justify-content-center align-items-center gap-2">
+                                        <?php if ($job): ?>
+                                            <a href="<?= site_url('repair/jobs/view/' . $job['id']) ?>" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-tools me-1"></i><?= html_escape($job['job_reference']) ?>
+                                            </a>
+                                        <?php endif; ?>
+                                        <?= form_open('storage/booking/unfinish/' . $booking['id']); ?>
+                                            <button type="submit" class="btn btn-sm btn-outline-warning" onclick="return confirm('Reopen this booking? The linked repair job is kept.')">Mark Unfinished</button>
+                                        <?= form_close(); ?>
+                                    </div>
+                                </td>
+                            <?php elseif ($booking['status'] === 'picked'): ?>
+                                <td colspan="4">
+                                    <div class="d-flex flex-wrap justify-content-center align-items-center gap-2">
+                                        <?php if ($job): ?>
+                                            <a href="<?= site_url('repair/jobs/view/' . $job['id']) ?>" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-tools me-1"></i><?= html_escape($job['job_reference']) ?>
+                                            </a>
+                                        <?php endif; ?>
+                                        <?= form_open('storage/booking/finish/' . $booking['id']); ?>
+                                            <button type="submit" class="btn btn-sm btn-outline-dark" onclick="return confirm('Mark this repair as finished?')">Mark Finished</button>
+                                        <?= form_close(); ?>
+                                    </div>
+                                </td>
+                            <?php elseif (in_array($booking['status'], ['approved', 'rescheduled'])): ?>
+                                <td colspan="4">
+                                    <div class="d-flex flex-wrap justify-content-center align-items-center gap-2">
+                                        <?php if ($job): ?>
+                                            <a href="<?= site_url('repair/jobs/view/' . $job['id']) ?>" class="btn btn-sm btn-outline-secondary">
+                                                <i class="bi bi-tools me-1"></i><?= html_escape($job['job_reference']) ?>
+                                            </a>
+                                        <?php endif; ?>
+                                        <?= form_open('storage/booking/pick/' . $booking['id']); ?>
+                                            <button type="submit" class="btn btn-sm btn-info">Pick Up</button>
+                                        <?= form_close(); ?>
+                                    </div>
                                 </td>
                             <?php else: ?>
                                 <td>
@@ -110,13 +155,7 @@
                                         Decline
                                     </button>
                                 </td>
-                                <td>
-                                    <?php if (in_array($booking['status'], ['approved', 'rescheduled'])): ?>
-                                        <?= form_open('storage/booking/finish/' . $booking['id']); ?>
-                                            <button type="submit" class="btn btn-sm btn-outline-dark">Mark Finished</button>
-                                        <?= form_close(); ?>
-                                    <?php endif; ?>
-                                </td>
+                                <td></td>
                             <?php endif; ?>
                         </tr>
                     <?php endforeach; ?>

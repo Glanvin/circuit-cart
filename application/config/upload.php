@@ -27,6 +27,16 @@ $config['upload'] = array(
 		'encrypt_name'  => TRUE,
 		'overwrite'     => FALSE,
 	),
+	'products' => array(
+		'upload_path'   => FCPATH . 'storage/products/',
+		'allowed_types' => 'jpg|jpeg|png|webp',
+		'max_size'      => 5120, // 5 MB per product image
+		'max_width'     => 0,
+		'max_height'    => 0,
+		'is_image'      => TRUE,
+		'encrypt_name'  => TRUE,
+		'overwrite'     => FALSE,
+	),
 	//Spreadsheets for the admin user import. xlsm is deliberately excluded
 	//because macro-enabled workbooks are never a valid source of user rows.
 	'user_import' => array(

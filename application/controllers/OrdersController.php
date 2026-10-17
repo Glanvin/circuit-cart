@@ -29,11 +29,10 @@ class OrdersController extends MY_Controller {
 			$order = $this->SalesModel->getSaleById((int) $id);
 
 			//Verify ownership
-			if ($order['customer_email'] !== $this->session->userdata('email')) {
+			$sess = $this->session->userdata('email');
+			if (empty($sess) || strtolower($order['customer_email']) !== strtolower($sess)) {
 				throw new AppException('P03');
 			}
-
-			$order['items'] = json_decode($order['items'] ?? '[]', true);
 		} catch (AppException $e) {
 			$this->toastify->error($e->toToast());
 			redirect('orders', 'refresh');
@@ -44,5 +43,30 @@ class OrdersController extends MY_Controller {
 			'title' => 'Order #' . $order['receipt_no'],
 			'order' => $order,
 		]);
+	}
+
+	//Lets a customer cancel their own online order before it ships. Restocks
+	//the order through the model (transaction + stock movements).
+	public function cancel($id)
+	{
+		try {
+			$order = $this->SalesModel->getSaleById((int) $id);
+
+			//Verify ownership
+			$sess = $this->session->userdata('email');
+			if (empty($sess) || strtolower($order['customer_email']) !== strtolower($sess)) {
+				throw new AppException('P03');
+			}
+
+			$this->SalesModel->cancelOrder((int) $id, NULL, 'Cancelled by customer', ['processing']);
+			$this->toastify->success('Order ' . $order['receipt_no'] . ' has been cancelled.');
+
+			$order['status'] = 'cancelled';
+			send_order_status_email($order, 'cancelled');
+		} catch (AppException $e) {
+			$this->toastify->error($e->toToast());
+		}
+
+		redirect('orders', 'refresh');
 	}
 }

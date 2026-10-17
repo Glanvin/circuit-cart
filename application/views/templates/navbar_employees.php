@@ -35,6 +35,15 @@ $titleClass = fn(string $match): string => strtolower($title ?? '') == $match ? 
                 <li class="nav-item">
                     <a class="nav-link <?= $titleClass('orders') ?>" href="<?= site_url('employee/orders') ?>">Orders</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= $titleClass('promo codes') || in_array(strtolower($title ?? ''), ['new promo code', 'edit promo code']) ? 'active' : '' ?>" href="<?= site_url('employee/promos') ?>">Promos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= $titleClass('product reviews') ?>" href="<?= site_url('employee/reviews') ?>">Reviews</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= $titleClass('repair services') || in_array(strtolower($title ?? ''), ['new repair service', 'edit repair service']) ? 'active' : '' ?>" href="<?= site_url('employee/services') ?>">Services</a>
+                </li>
                 <?php endif; ?>
 
                 <?php if (in_array($role, ['cashier', 'admin'], true)): ?>
@@ -43,9 +52,12 @@ $titleClass = fn(string $match): string => strtolower($title ?? '') == $match ? 
                 </li>
                 <?php endif; ?>
 
-                <?php if (in_array($role, ['admin', 'technician'], true)): ?>
+                <?php if (in_array($role, ['admin', 'manager', 'technician'], true)): ?>
                 <li class="nav-item">
                     <a class="nav-link <?= $titleClass('bookings') ?>" href="<?= site_url('storage/booking') ?>">Bookings</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link <?= $titleClass('repair jobs') || str_starts_with(strtolower($title ?? ''), 'job ') ? 'active' : '' ?>" href="<?= site_url('repair/jobs') ?>">Repair Jobs</a>
                 </li>
                 <?php endif; ?>
 

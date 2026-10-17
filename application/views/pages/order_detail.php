@@ -62,13 +62,19 @@
                     <div class="text-body-secondary small">Subtotal</div>
                     <div class="fw-bold"><?= '₱' . number_format($order['subtotal'], 2) ?></div>
                 </div>
+                <?php if (!empty($order['discount_total']) && (float) $order['discount_total'] > 0): ?>
+                    <div>
+                        <div class="text-body-secondary small">Discount<?= !empty($order['promo_code']) ? ' (' . html_escape($order['promo_code']) . ')' : '' ?></div>
+                        <div class="fw-bold text-success">−₱<?= number_format((float) $order['discount_total'], 2) ?></div>
+                    </div>
+                <?php endif; ?>
                 <div>
                     <div class="text-body-secondary small">Shipping</div>
-                    <div class="fw-bold">₱ 10.00</div>
+                    <div class="fw-bold"><?= '₱' . number_format((float)($order['total'] ?? 0) - (float)($order['subtotal'] ?? 0) - (float)($order['tax_total'] ?? 0), 2) ?></div>
                 </div>
                 <div>
                     <div class="text-body-secondary small">Tax</div>
-                    <div class="fw-bold">₱ 20.00</div>
+                    <div class="fw-bold"><?= '₱' . number_format((float)($order['tax_total'] ?? 0), 2) ?></div>
                 </div>
                 <div class="border-start ps-3">
                     <div class="text-body-secondary small">Total</div>
@@ -78,11 +84,46 @@
         </div>
     </div>
 
-    <?php if ($order['status'] === 'processing' || $order['status'] === 'shipped'): ?>
+    <?php if (!empty($order['history']) && is_array($order['history'])): ?>
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h2 class="h6 mb-3">Order Timeline</h2>
+                <div class="vstack gap-2">
+                    <?php foreach ($order['history'] as $entry): ?>
+                        <div class="d-flex align-items-start gap-2">
+                            <i class="bi bi-dot fs-4 text-primary" aria-hidden="true"></i>
+                            <div>
+                                <div class="fw-semibold"><?= html_escape($entry['action'] ?? 'Update') ?></div>
+                                <?php if (!empty($entry['note'])): ?>
+                                    <div class="small text-body-secondary"><?= html_escape($entry['note']) ?></div>
+                                <?php endif; ?>
+                                <?php if (!empty($entry['timestamp'])): ?>
+                                    <div class="small text-body-secondary"><?= date('M j, Y g:i A', strtotime($entry['timestamp'])) ?></div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            </div>
+        </div>
+    <?php endif; ?>
+    <?php if ($order['status'] === 'processing'): ?>
+        <div class="card shadow-sm border-info">
+            <div class="card-body d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>
+                    <i class="bi bi-info-circle text-info me-2"></i>
+                    <strong>Your order is being processed.</strong> You will receive email updates as the status changes. You can still cancel before it ships.
+                </div>
+                <?= form_open('orders/cancel/' . $order['id'], ['class' => 'mb-0', 'onsubmit' => "return confirm('Cancel this order? The items will be returned to stock.');"]) ?>
+                    <button type="submit" class="btn btn-outline-danger">Cancel Order</button>
+                <?= form_close() ?>
+            </div>
+        </div>
+    <?php elseif ($order['status'] === 'shipped'): ?>
         <div class="card shadow-sm border-info">
             <div class="card-body">
-                <i class="bi bi-info-circle text-info me-2"></i>
-                <strong>Your order is being processed.</strong> You will receive email updates as the status changes.
+                <i class="bi bi-truck text-info me-2"></i>
+                <strong>Your order has shipped.</strong> It can no longer be cancelled online. Please contact us if you need help.
             </div>
         </div>
     <?php elseif ($order['status'] === 'delivered'): ?>

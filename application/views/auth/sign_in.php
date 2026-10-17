@@ -27,6 +27,8 @@
 
             <button class="btn btn-info w-100 py-2" type="submit" name="signin" value="signin">Sign in</button>
 
+            <p class="mt-3 mb-0 text-center"><a href="<?= site_url('auth/forgot') ?>">Forgot password?</a></p>
+
             <p class="mt-3 mb-0 text-center">Don't have an account? <a href="<?= site_url('auth/signup') ?>">Sign Up</a></p>
 
             <p class="mt-3 mb-3 text-body-secondary">Copyright <?= SITE_NAME ?></p>

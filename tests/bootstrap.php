@@ -164,6 +164,7 @@ class FakeLoader {
 class FakeInput {
 	public $postData = [];
 	public $getData = [];
+	public $serverData = [];
 
 	public function post($key = NULL, $xss = FALSE) {
 		if ($key === NULL) {
@@ -177,6 +178,35 @@ class FakeInput {
 			return $this->getData;
 		}
 		return $this->getData[$key] ?? NULL;
+	}
+
+	public function server($key = NULL, $xss = FALSE) {
+		if ($key === NULL) {
+			return $this->serverData;
+		}
+		return $this->serverData[$key] ?? NULL;
+	}
+}
+
+/**
+ * Records output written by controllers (e.g. JSON cart endpoints).
+ */
+class FakeOutput {
+	public $contentType = NULL;
+	public $output = NULL;
+
+	public function set_content_type($type) {
+		$this->contentType = $type;
+		return $this;
+	}
+
+	public function set_output($output) {
+		$this->output = $output;
+		return $this;
+	}
+
+	public function get_output() {
+		return $this->output;
 	}
 }
 
@@ -277,6 +307,18 @@ function redirect_target(): ?string {
 	return $GLOBALS['redirect_target'];
 }
 
+if (!function_exists('site_url')) {
+	function site_url($uri = '', $protocol = NULL) {
+		return 'http://localhost/' . ltrim($uri, '/');
+	}
+}
+
+if (!function_exists('base_url')) {
+	function base_url($uri = '', $protocol = NULL) {
+		return 'http://localhost/' . ltrim($uri, '/');
+	}
+}
+
 function form_error($field = '', $prefix = '', $suffix = '') {
 	$ci = CI_Controller::get_instance();
 	if (isset($ci->validationErrors[$field]) && $ci->validationErrors[$field]) {
@@ -296,8 +338,17 @@ require_once __DIR__ . '/support/FakeEmail.php';
 // ---------------------------------------------------------------------------
 require_once APPPATH . 'core/AppException.php';
 require_once APPPATH . 'libraries/Toastify.php';
+require_once APPPATH . 'libraries/UserImporter.php';
+require_once APPPATH . 'models/EmployeeModel.php';
 require_once APPPATH . 'models/PartsModel.php';
 require_once APPPATH . 'models/UserModel.php';
+require_once APPPATH . 'models/PromoModel.php';
+require_once APPPATH . 'models/WishlistModel.php';
+require_once APPPATH . 'models/ReviewModel.php';
+require_once APPPATH . 'models/SalesModel.php';
+require_once APPPATH . 'models/RepairJobModel.php';
+require_once APPPATH . 'models/RepairServiceModel.php';
+require_once APPPATH . 'models/BookingModel.php';
 
 // Returns the error_codes mapping loaded from the real config file.
 function error_codes(): array {
@@ -317,11 +368,20 @@ require_once APPPATH . 'helpers/my_helper.php';
 require_once APPPATH . 'core/MY_Controller.php';
 
 require_once APPPATH . 'controllers/AuthController.php';
+require_once APPPATH . 'controllers/CartController.php';
+require_once APPPATH . 'controllers/CheckoutController.php';
 require_once APPPATH . 'controllers/BrowseController.php';
 require_once APPPATH . 'controllers/DashboardController.php';
 require_once APPPATH . 'controllers/HomeController.php';
 require_once APPPATH . 'controllers/ManagementController.php';
+require_once APPPATH . 'controllers/PromoAdminController.php';
 require_once APPPATH . 'controllers/StockController.php';
+require_once APPPATH . 'controllers/WishlistController.php';
+require_once APPPATH . 'controllers/ReviewController.php';
+require_once APPPATH . 'controllers/ReviewAdminController.php';
+require_once APPPATH . 'controllers/RepairServiceAdminController.php';
+require_once APPPATH . 'controllers/BookingController.php';
+require_once APPPATH . 'controllers/RepairJobController.php';
 
 // ---------------------------------------------------------------------------
 // Reset global redirect state once at boot
@@ -353,7 +413,25 @@ function make_my_controller(string $class, $session, $toastify, $db = NULL, $loa
 		$controller->db = $db;
 		$controller->PartsModel = new PartsModel();
 		$controller->UserModel  = new UserModel();
+		$controller->PromoModel = new PromoModel();
+		$controller->PromoModel->db = $db;
+		$controller->WishlistModel = new WishlistModel();
+		$controller->WishlistModel->db = $db;
+		$controller->ReviewModel = new ReviewModel();
+		$controller->ReviewModel->db = $db;
+		$controller->SalesModel = new SalesModel();
+		$controller->SalesModel->db = $db;
+		$controller->EmployeeModel = new EmployeeModel();
+		$controller->EmployeeModel->db = $db;
+		$controller->RepairServiceModel = new RepairServiceModel();
+		$controller->RepairServiceModel->db = $db;
+		$controller->BookingModel = new BookingModel();
+		$controller->BookingModel->db = $db;
+		$controller->RepairJobModel = new RepairJobModel();
+		$controller->RepairJobModel->db = $db;
 	}
+	$controller->output = new FakeOutput();
+	$controller->form_validation = new FakeValidation();
 	if ($loader !== NULL) {
 		$controller->load = $loader;
 	}

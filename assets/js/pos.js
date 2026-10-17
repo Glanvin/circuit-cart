@@ -15,6 +15,13 @@
         paymentMethods = [];
     }
 
+    var taxRates = [];
+    try {
+        taxRates = JSON.parse(document.getElementById('pos-tax-rates').textContent) || [];
+    } catch (e) {
+        taxRates = [];
+    }
+
     var cart = [];
     var paymentRows = []; // {method_id, code, amount, reference, rowId}
 
@@ -157,41 +164,85 @@
         updatePaymentUI();
     }
 
-    function updatePaymentUI() {
-        var sub = subtotal();
+    //Mirrors SalesModel::recordSale: each active rate is applied to the subtotal
+    //and rounded to 2dp before summing, then the total is rounded. Keeping this
+    //identical to the server avoids the "payment total does not match" error.
+    function computeTotals() {
+        var sub = round(subtotal(), 2);
+        var breakdown = [];
+        var taxTotal = 0;
 
-        //Fetch tax rates from server (simplified: assume 12% VAT for now, but we'll get from sale response)
-        //For now, show estimated tax
-        var taxRate = 0.12; //Default VAT
-        var taxAmount = round(sub * taxRate, 2);
-        var total = round(sub + taxAmount, 2);
+        taxRates.forEach(function (t) {
+            var rate = parseFloat(t.rate_percent);
+            var amount = round(sub * (rate / 100), 2);
+            if (amount > 0) {
+                breakdown.push({ name: t.name, rate: rate, amount: amount });
+                taxTotal += amount;
+            }
+        });
 
-        totalEl.textContent = money(total);
+        taxTotal = round(taxTotal, 2);
+        return { subtotal: sub, breakdown: breakdown, taxTotal: taxTotal, total: round(sub + taxTotal, 2) };
+    }
 
-        //Show tax breakdown
-        taxLinesEl.style.display = 'block';
-        taxLinesEl.innerHTML = '<div class="d-flex justify-content-between small text-muted">' +
-            '<span>VAT (12%)</span>' +
-            '<span>' + money(taxAmount) + '</span>' +
-            '</div>';
-
-        dueTotalEl.textContent = money(total);
-        paidTotalEl.textContent = money(totalPaid());
-
-        //Enable complete button if payment covers total
-        var paid = totalPaid();
-        completeBtn.disabled = (cart.length === 0) || (paid + 0.009 < total); //Small epsilon
-
-        //Render payment method rows
-        if (!paymentRows.length) {
-            //Add default cash row
-            addPaymentRow('cash', total);
+    function renderTaxLines(totals) {
+        if (!totals.breakdown.length) {
+            taxLinesEl.style.display = 'none';
+            taxLinesEl.innerHTML = '';
+            return;
         }
 
-        paymentMethodsEl.innerHTML = paymentRows.map(function (r, i) {
+        taxLinesEl.style.display = 'block';
+        taxLinesEl.innerHTML = totals.breakdown.map(function (t) {
+            return '<div class="d-flex justify-content-between small text-muted">' +
+                '<span>' + escapeHtml(t.name) + (t.rate ? ' (' + t.rate + '%)' : '') + '</span>' +
+                '<span>' + money(t.amount) + '</span>' +
+                '</div>';
+        }).join('');
+    }
+
+    //Updates the running totals and the complete button without rebuilding the
+    //payment inputs, so a focused amount field is never torn out from under the
+    //cashier while typing.
+    function updateTotals() {
+        var totals = computeTotals();
+        subtotalEl.textContent = money(totals.subtotal);
+        totalEl.textContent = money(totals.total);
+        renderTaxLines(totals);
+
+        //A lone cash row follows the amount due until the cashier overrides it.
+        if (paymentRows.length === 1 && paymentRows[0].code === 'cash' && paymentRows[0].autoAmount) {
+            paymentRows[0].amount = totals.total;
+            var inp = document.querySelector('.amount-input[data-row-id="' + paymentRows[0].rowId + '"]');
+            if (inp) inp.value = totals.total.toFixed(2);
+        }
+
+        var paid = totalPaid();
+        paidTotalEl.textContent = money(paid);
+        dueTotalEl.textContent = money(totals.total);
+        completeBtn.disabled = (cart.length === 0) || (paid + 0.009 < totals.total);
+    }
+
+    //Structural refresh: guarantees a default payment row, rebuilds the rows and
+    //refreshes totals. Only used when the row set changes.
+    function updatePaymentUI() {
+        if (!paymentRows.length) {
+            addPaymentRow('cash', computeTotals().total);
+        }
+        renderPaymentRows();
+        updateTotals();
+    }
+
+    function renderPaymentRows() {
+        paymentMethodsEl.innerHTML = paymentRows.map(function (r) {
             var method = paymentMethods.find(function (m) { return m.code === r.code; });
-            var methodName = method ? method.name : r.code;
-            var requiresRef = method ? method.requires_ref : false;
+            var requiresRef = method ? parseInt(method.requires_ref, 10) === 1 : false;
+
+            var refCol = requiresRef
+                ? '<div class="col-3">' +
+                    '<input type="text" class="form-control form-control-sm ref-input" data-row-id="' + r.rowId + '" placeholder="Reference #" value="' + escapeHtml(r.reference || '') + '">' +
+                '</div>'
+                : '<div class="col-3"></div>';
 
             return '<div class="row g-2 mb-2 payment-row" data-row-id="' + r.rowId + '">' +
                 '<div class="col-5">' +
@@ -201,30 +252,29 @@
                         }).join('') +
                     '</select>' +
                 '</div>' +
-                '<div class="col-4">' +
+                '<div class="col-3">' +
                     '<input type="number" class="form-control form-control-sm amount-input" data-row-id="' + r.rowId + '" step="0.01" min="0" value="' + r.amount + '" required>' +
                 '</div>' +
-                (requiresRef ? '<div class="col-3">' +
-                    '<input type="text" class="form-control form-control-sm ref-input" data-row-id="' + r.rowId + '" placeholder="Reference #">' +
-                '</div>' : '<div class="col-3"></div>') +
+                refCol +
                 '<div class="col-auto">' +
                     '<button type="button" class="btn btn-sm btn-outline-danger remove-payment" data-row-id="' + r.rowId + '"' + (paymentRows.length === 1 ? ' disabled' : '') + '><i class="bi bi-trash"></i></button>' +
                 '</div>' +
             '</div>';
         }).join('');
 
-        //Attach listeners to new elements
         attachPaymentListeners();
     }
 
     function addPaymentRow(code, amount) {
         var rowId = ++paymentRowCounter;
+        var method = paymentMethods.find(function (m) { return m.code === code; });
         paymentRows.push({
             rowId: rowId,
-            method_id: paymentMethods.find(function (m) { return m.code === code; })?.id || 0,
+            method_id: method ? method.id : 0,
             code: code,
             amount: amount || 0,
-            reference: ''
+            reference: '',
+            autoAmount: code === 'cash'
         });
     }
 
@@ -243,51 +293,52 @@
     }
 
     function attachPaymentListeners() {
-        //Method select
+        //Method select: rebuild rows so the reference field swaps in/out.
         document.querySelectorAll('.method-select').forEach(function (sel) {
-            sel.onchange = function () {
+            sel.addEventListener('change', function () {
                 var rowId = parseInt(this.dataset.rowId, 10);
                 var code = this.value;
                 var method = paymentMethods.find(function (m) { return m.code === code; });
                 var row = paymentRows.find(function (r) { return r.rowId === rowId; });
+
                 if (row) {
                     row.code = code;
                     row.method_id = method ? method.id : 0;
-                    //Update reference field visibility
-                    var refContainer = this.closest('.payment-row').querySelector('.ref-input');
-                    if (refContainer) {
-                        refContainer.style.display = method && method.requires_ref ? 'block' : 'none';
-                    }
+                    row.autoAmount = code === 'cash';
+                    row.reference = '';
                 }
-                updatePaymentUI(); //Re-render to show/hide ref field
-            };
+
+                renderPaymentRows();
+                updateTotals();
+            });
         });
 
-        //Amount input
+        //Amount input: update totals only. Re-rendering here is what used to
+        //steal focus on every keystroke.
         document.querySelectorAll('.amount-input').forEach(function (inp) {
-            inp.oninput = function () {
+            inp.addEventListener('input', function () {
                 var rowId = parseInt(this.dataset.rowId, 10);
-                updatePaymentRow(rowId, 'amount', parseFloat(this.value) || 0);
-                updatePaymentUI();
-            };
+                var row = paymentRows.find(function (r) { return r.rowId === rowId; });
+                if (row) {
+                    row.amount = parseFloat(this.value) || 0;
+                    row.autoAmount = false;
+                }
+                updateTotals();
+            });
         });
 
-        //Reference input
         document.querySelectorAll('.ref-input').forEach(function (inp) {
-            inp.oninput = function () {
-                var rowId = parseInt(this.dataset.rowId, 10);
-                updatePaymentRow(rowId, 'reference', this.value);
-            };
+            inp.addEventListener('input', function () {
+                updatePaymentRow(parseInt(this.dataset.rowId, 10), 'reference', this.value);
+            });
         });
 
-        //Remove button
         document.querySelectorAll('.remove-payment').forEach(function (btn) {
-            btn.onclick = function () {
+            btn.addEventListener('click', function () {
                 if (paymentRows.length <= 1) return;
-                var rowId = parseInt(this.dataset.rowId, 10);
-                removePaymentRow(rowId);
+                removePaymentRow(parseInt(this.dataset.rowId, 10));
                 updatePaymentUI();
-            };
+            });
         });
     }
 
@@ -330,15 +381,12 @@
     }
 
     function complete() {
-        if (!cart.length) { alert('The sale cart is empty.'); return; }
+        if (!cart.length) { showToast('The sale cart is empty.', 'error'); return; }
 
-        var sub = subtotal();
-        var taxRate = 0.12;
-        var taxAmount = round(sub * taxRate, 2);
-        var total = round(sub + taxAmount, 2);
+        var totals = computeTotals();
         var paid = totalPaid();
 
-        if (paid + 0.009 < total) { alert('Total paid amount is less than the total due.'); return; }
+        if (paid + 0.009 < totals.total) { showToast('Total paid is less than the amount due.', 'error'); return; }
 
         completeBtn.disabled = true;
         completeBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
@@ -366,7 +414,7 @@
                 completeBtn.disabled = false;
                 completeBtn.innerHTML = 'Complete Sale';
 
-                if (!data.ok) { alert(data.error || 'Unable to complete the sale.'); return; }
+                if (!data.ok) { showToast(data.error || 'Unable to complete the sale.', 'error'); return; }
 
                 showReceipt(data);
                 cart = [];
@@ -377,7 +425,7 @@
             .catch(function () {
                 completeBtn.disabled = false;
                 completeBtn.innerHTML = 'Complete Sale';
-                alert('Network error. Please try again.');
+                showToast('Network error. Please try again.', 'error');
             });
     }
 
@@ -403,13 +451,195 @@
             '<hr>' +
             '<div class="d-flex justify-content-between"><span>Change</span><span>' + money(data.change || 0) + '</span></div>';
 
-        bootstrap.Modal.getOrCreateInstance(document.getElementById('posReceiptModal')).show();
+        var receiptModal = document.getElementById('posReceiptModal');
+
+        //Stock, prices and low-stock badges are rendered from the page payload,
+        //so reload once the receipt is dismissed to pull fresh figures.
+        receiptModal.addEventListener('hidden.bs.modal', function () {
+            window.location.reload();
+        }, { once: true });
+
+        bootstrap.Modal.getOrCreateInstance(receiptModal).show();
     }
 
     function escapeHtml(str) {
         return String(str == null ? '' : str).replace(/[&<>"']/g, function (c) {
-            return { '&': '&', '<': '<', '>': '>', '"': '"', "'": ''' }[c];
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
         });
+    }
+
+    // --- Refund / void panel -------------------------------------------------
+
+    var refundSales = [];
+    var selectedRefundSale = null;
+    var refundOpenBtn = document.getElementById('posOpenRefund');
+
+    function statusBadge(status) {
+        var map = {
+            completed: 'text-bg-success',
+            processing: 'text-bg-info',
+            shipped: 'text-bg-primary',
+            delivered: 'text-bg-success',
+            cancelled: 'text-bg-secondary',
+            refunded: 'text-bg-warning',
+            voided: 'text-bg-dark'
+        };
+        return '<span class="badge ' + (map[status] || 'text-bg-secondary') + '">' + escapeHtml(status) + '</span>';
+    }
+
+    function showRefundAlert(message, type) {
+        var el = document.getElementById('posRefundAlert');
+        el.innerHTML = message ? '<div class="alert alert-' + type + ' py-2">' + escapeHtml(message) + '</div>' : '';
+    }
+
+    function showRefundList() {
+        document.getElementById('posRefundList').style.display = '';
+        document.getElementById('posRefundConfirm').style.display = 'none';
+        selectedRefundSale = null;
+    }
+
+    function loadRefundSales(receipt) {
+        var body = document.getElementById('posRefundListBody');
+        body.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Loading...</td></tr>';
+        showRefundAlert('', 'danger');
+
+        var url = baseUrl + 'pos/lookup' + (receipt ? '?receipt=' + encodeURIComponent(receipt) : '');
+
+        fetch(url, { headers: { 'Accept': 'application/json' } })
+            .then(function (res) { return res.json(); })
+            .then(function (data) {
+                if (!data.ok) {
+                    body.innerHTML = '';
+                    showRefundAlert(data.error || 'Unable to load sales.', 'danger');
+                    return;
+                }
+                renderRefundRows(data.sales || []);
+            })
+            .catch(function () {
+                body.innerHTML = '';
+                showRefundAlert('Network error. Please try again.', 'danger');
+            });
+    }
+
+    function renderRefundRows(sales) {
+        refundSales = sales;
+        var body = document.getElementById('posRefundListBody');
+
+        if (!sales.length) {
+            body.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">No sales found.</td></tr>';
+            return;
+        }
+
+        body.innerHTML = sales.map(function (s) {
+            var itemCount = (s.items || []).reduce(function (n, i) { return n + i.qty; }, 0);
+            var action = s.reversible
+                ? '<button type="button" class="btn btn-sm btn-outline-danger" data-refund="' + s.id + '">Reverse</button>'
+                : '<span class="text-muted small">&mdash;</span>';
+
+            return '<tr>' +
+                '<td><strong>' + escapeHtml(s.receipt_no) + '</strong><br><small class="text-muted">' + escapeHtml(s.created_at) + '</small></td>' +
+                '<td>' + itemCount + ' item(s)</td>' +
+                '<td class="text-end text-nowrap">' + money(s.total) + '</td>' +
+                '<td>' + statusBadge(s.status) + '</td>' +
+                '<td class="text-end">' + action + '</td>' +
+                '</tr>';
+        }).join('');
+    }
+
+    function selectRefundSale(id) {
+        var sale = null;
+        for (var i = 0; i < refundSales.length; i++) {
+            if (refundSales[i].id === id) { sale = refundSales[i]; break; }
+        }
+        if (!sale) return;
+
+        selectedRefundSale = sale;
+
+        var lines = (sale.items || []).map(function (li) {
+            return '<div class="d-flex justify-content-between small"><span>' + escapeHtml(li.name) + ' &times; ' + li.qty + '</span><span>' + money(li.price * li.qty) + '</span></div>';
+        }).join('');
+
+        document.getElementById('posRefundSummary').innerHTML =
+            '<div class="d-flex justify-content-between"><strong>' + escapeHtml(sale.receipt_no) + '</strong><span>' + escapeHtml(sale.created_at) + '</span></div>' +
+            '<hr class="my-2">' + lines +
+            '<hr class="my-2"><div class="d-flex justify-content-between fw-bold"><span>Total</span><span>' + money(sale.total) + '</span></div>';
+
+        document.getElementById('posRefundReason').value = '';
+        document.getElementById('posRefundRestock').checked = true;
+        document.getElementById('posRefundMode').value = 'refund';
+        document.getElementById('posRefundApproverPin').value = '';
+
+        showRefundAlert('', 'danger');
+        document.getElementById('posRefundList').style.display = 'none';
+        document.getElementById('posRefundConfirm').style.display = '';
+    }
+
+    function submitRefund() {
+        if (!selectedRefundSale) return;
+
+        var pinEl = document.getElementById('posRefundApproverPin');
+        var approverPin = pinEl.value;
+        if (!/^\d{6}$/.test(approverPin)) {
+            showRefundAlert('Enter a manager or admin 6-digit PIN to continue.', 'danger');
+            pinEl.focus();
+            return;
+        }
+
+        var btn = document.getElementById('posRefundSubmit');
+        var params = new URLSearchParams();
+        params.append('sale_id', selectedRefundSale.id);
+        params.append('mode', document.getElementById('posRefundMode').value);
+        params.append('reason', document.getElementById('posRefundReason').value);
+        params.append('restock', document.getElementById('posRefundRestock').checked ? '1' : '0');
+        params.append('approver_pin', approverPin);
+
+        var body = window.CSRF ? window.CSRF.appendTo('') : '';
+        var payload = params.toString() + (body ? '&' + body : '');
+
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Processing...';
+
+        fetch(baseUrl + 'pos/refund', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: payload
+        })
+            .then(function (res) {
+                return res.text().then(function (body) {
+                    try {
+                        return JSON.parse(body);
+                    } catch (e) {
+                        var message = res.status >= 500
+                            ? 'The server could not process the refund (HTTP ' + res.status + '). Check the database upgrade and server logs.'
+                            : 'The server returned an unexpected response (HTTP ' + res.status + '). Refresh the page and try again.';
+                        var responseError = new Error(message);
+                        responseError.refundResponseError = true;
+                        throw responseError;
+                    }
+                });
+            })
+            .then(function (data) {
+                btn.disabled = false;
+                btn.innerHTML = 'Confirm Reversal';
+                pinEl.value = '';
+
+                if (!data.ok) {
+                    showRefundAlert(data.error || 'Unable to reverse the sale.', 'danger');
+                    return;
+                }
+
+                showRefundList();
+                loadRefundSales('');
+                showToast('Sale ' + data.sale.receipt_no + ' marked as ' + data.sale.status + '.', 'success');
+            })
+            .catch(function (error) {
+                btn.disabled = false;
+                btn.innerHTML = 'Confirm Reversal';
+                pinEl.value = '';
+                showRefundAlert(error && error.refundResponseError
+                    ? error.message
+                    : 'Network error. Please try again.', 'danger');
+            });
     }
 
     function round(value, decimals) {
@@ -451,6 +681,38 @@
             if (inc) add(parseInt(inc.dataset.inc, 10), 1);
             if (rm) remove(parseInt(rm.dataset.remove, 10));
         });
+
+        if (refundOpenBtn) {
+            refundOpenBtn.addEventListener('click', function () {
+                showRefundList();
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('posRefundModal')).show();
+                loadRefundSales('');
+            });
+
+            document.getElementById('posRefundLookup').addEventListener('click', function () {
+                loadRefundSales(document.getElementById('posRefundSearch').value.trim());
+            });
+
+            document.getElementById('posRefundSearch').addEventListener('keydown', function (e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    loadRefundSales(this.value.trim());
+                }
+            });
+
+            document.getElementById('posRefundRecent').addEventListener('click', function () {
+                document.getElementById('posRefundSearch').value = '';
+                loadRefundSales('');
+            });
+
+            document.getElementById('posRefundBack').addEventListener('click', showRefundList);
+            document.getElementById('posRefundSubmit').addEventListener('click', submitRefund);
+
+            document.getElementById('posRefundListBody').addEventListener('click', function (e) {
+                var btn = e.target.closest('[data-refund]');
+                if (btn) selectRefundSale(parseInt(btn.dataset.refund, 10));
+            });
+        }
 
         renderProducts();
         renderCart();

@@ -213,4 +213,161 @@ public function signup()
             $this->session->set_userdata('email', $user['email']);
         }
     }
+
+	//Renders the forgot-password form. Public route (no login required).
+	public function forgot()
+	{
+		if ($this->session->userdata('username')) {
+			redirect('settings', 'refresh');
+			return;
+		}
+
+		$data = [
+			'title' => 'Forgot Password',
+			'enable_footer' => false,
+		];
+
+		$this->load->view('templates/header', $data);
+		$this->load->view('auth/forgot_password', $data);
+	}
+
+	//Issues a single-use reset token by email. Never reveals whether an
+	//account exists; always shows the same generic success message.
+	public function requestReset()
+	{
+		$email = strtolower(trim((string) $this->input->post('email', true)));
+
+		if ($email === '' || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+			$this->toastify->error('Enter a valid email address.');
+			redirect('auth/forgot', 'refresh');
+			return;
+		}
+
+		try {
+			$user = $this->UserModel->findUserByEmail($email);
+
+			if (!empty($user['id'])) {
+				$token = bin2hex(random_bytes(32));
+				$hash = hash('sha256', $token);
+				$expires = date('Y-m-d H:i:s', time() + 3600);
+
+				//Invalidate any prior unused tokens for this user
+				$this->db->where('user_id', $user['id']);
+				$this->db->where('used_at IS NULL', NULL, FALSE);
+				$this->db->delete('tbl_password_resets');
+
+				$this->db->insert('tbl_password_resets', [
+					'user_id' => (int) $user['id'],
+					'token_hash' => $hash,
+					'expires_at' => $expires,
+				]);
+
+				$reset_url = site_url('auth/reset/' . $token);
+				deliver_email('emails/reset_email', [
+					'subject' => 'Reset your Circuit Cart password',
+					'greeting' => 'Hello,',
+					'message' => 'We received a request to reset the password for this account.',
+					'reset_url' => $reset_url,
+					'expires_minutes' => 60,
+				], $email, 'Reset your Circuit Cart password');
+			}
+		} catch (Exception $e) {
+			//Swallow errors so the endpoint never reveals account existence
+		}
+
+		$this->toastify->success('If an account matches that email, a reset link has been sent.');
+		redirect('auth/signin', 'refresh');
+	}
+
+	//Renders the new-password form for a valid, unexpired token.
+	public function reset($token = '')
+	{
+		if ($this->session->userdata('username')) {
+			redirect('settings', 'refresh');
+			return;
+		}
+
+		$valid = $this->validateResetToken($token) !== NULL;
+
+		$data = [
+			'title' => 'Reset Password',
+			'enable_footer' => false,
+			'token' => $token,
+			'token_valid' => $valid,
+		];
+
+		$this->load->view('templates/header', $data);
+		$this->load->view('auth/reset_password', $data);
+	}
+
+	//Consumes the token and stores the new password.
+	public function applyReset()
+	{
+		$token = (string) $this->input->post('token', true);
+		$password = (string) $this->input->post('password', true);
+		$confirm = (string) $this->input->post('confirm_password', true);
+
+		if (strlen($password) < 6) {
+			$this->toastify->error('Password must be at least 6 characters.');
+			redirect('auth/reset/' . $token, 'refresh');
+			return;
+		}
+
+		if ($password !== $confirm) {
+			$this->toastify->error('Passwords do not match.');
+			redirect('auth/reset/' . $token, 'refresh');
+			return;
+		}
+
+		$row = $this->validateResetToken($token);
+
+		if ($row === NULL) {
+			$this->toastify->error('This reset link is invalid or has expired. Please request a new one.');
+			redirect('auth/forgot', 'refresh');
+			return;
+		}
+
+		try {
+			$this->db->where('id', (int) $row['user_id']);
+			$this->db->update('tbl_users', [
+				'password' => password_hash($password, PASSWORD_DEFAULT),
+			]);
+
+			$this->db->where('id', (int) $row['id']);
+			$this->db->update('tbl_password_resets', [
+				'used_at' => date('Y-m-d H:i:s'),
+			]);
+
+			$this->toastify->success('Password updated. You can sign in now.');
+			redirect('auth/signin', 'refresh');
+		} catch (Exception $e) {
+			$this->toastify->error('We are currently experiencing technical difficulties.');
+			redirect('auth/forgot', 'refresh');
+		}
+	}
+
+	//Looks up a token: returns the matching reset row when valid and
+	//unexpired, or NULL. When $mark is true the row is also marked used.
+	private function validateResetToken(string $token): ?array
+	{
+		if ($token === '' || !preg_match('/^[a-f0-9]{64}$/', $token)) {
+			return NULL;
+		}
+
+		$hash = hash('sha256', $token);
+		$this->db->where('token_hash', $hash);
+		$this->db->where('used_at IS NULL', NULL, FALSE);
+		$query = $this->db->get('tbl_password_resets', 1);
+		$row = $query ? $query->row_array() : NULL;
+
+		if (!$row) {
+			return NULL;
+		}
+
+		if (strtotime($row['expires_at']) < time()) {
+			return NULL;
+		}
+
+		return $row;
+	}
 }
