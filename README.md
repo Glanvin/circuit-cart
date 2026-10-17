@@ -9,7 +9,7 @@ Built on **CodeIgniter 3** with **Bootstrap 5**, **MySQL**, and a custom **Toast
 - [Features](#features)
 - [Requirements](#requirements)
 - [Installation](#installation)
-- [Database schema](#database-schema)
+- [Database](#database)
 - [Demo accounts](#demo-accounts)
 - [Routes](#routes)
 - [Project structure](#project-structure)
@@ -66,10 +66,10 @@ Built on **CodeIgniter 3** with **Bootstrap 5**, **MySQL**, and a custom **Toast
    ```bash
    composer install
    ```
-3. Create the database and import the schema. `db_schema.sql` is the single source of truth — it creates every table the app uses and seeds the demo catalog, employees, customer account, promo codes, a demo sales history and the demo repair workflow (bookings, repair jobs and payments, wishlist, reviews, stock movements and bug reports):
+3. Create the database and import the schema and seed data. `db_schema.sql` creates every table the app uses (structure only); `db_seed.sql` then seeds the demo catalog, employees, customer account, promo codes, a demo sales history and the demo repair workflow (bookings, repair jobs and payments, wishlist, reviews, stock movements and bug reports). Import `db_schema.sql` first, then `db_seed.sql`:
    ```bash
-   mysql -u root -e "CREATE DATABASE circuit_cart"
    mysql -u root circuit_cart < db_schema.sql
+   mysql -u root circuit_cart < db_seed.sql
    ```
    The script is idempotent (`IF NOT EXISTS` / `ON DUPLICATE KEY UPDATE`), so re-running it against an existing database is safe.
 4. Point the app at that database. Credentials live in `.env` at the project root, not in `application/config/database.php` (that file reads them from environment variables):
@@ -89,9 +89,9 @@ Built on **CodeIgniter 3** with **Bootstrap 5**, **MySQL**, and a custom **Toast
 
 On Linux with tmux, OpenCode, and XAMPP installed, run `./xstart` from the repository (or invoke the script by its path). It opens a `circuit-cart` tmux session with `git`, `opencode`, and `services` windows. The services window starts Apache and MySQL through XAMPP and may prompt for your sudo password. If XAMPP is installed outside `/opt/lampp`, set `XAMPP_DIR` before running the script.
 
-## Database schema
+## Database
 
-`db_schema.sql` contains the full database — catalog, accounts, sales, bookings, repair jobs, inventory movements and their lookup tables — plus seed data, including a demo sales history (recent store sales and online orders across the last three weeks) so Analytics, POS history and order tracking are populated out of the box.
+`db_schema.sql` contains the plain schema — every table (catalog, accounts, sales, bookings, repair jobs, inventory movements and their lookup tables) with no rows. `db_seed.sql` holds the demo seed data, including a demo sales history (recent store sales and online orders across the last three weeks) so Analytics, POS history and order tracking are populated out of the box. Import the schema first, then the seed.
 
 | Table | Purpose |
 | --- | --- |
@@ -113,10 +113,11 @@ Note on JSON columns: on MySQL these are native `JSON`; MariaDB implements `JSON
 
 ### Upgrading an existing installation
 
-`db_schema.sql` is the single canonical schema and seed source: the earlier per-phase upgrade scripts are folded back into it. Import it into a fresh database, or re-run it against an existing one:
+`db_schema.sql` is the canonical plain schema and `db_seed.sql` the canonical seed source: the earlier per-phase upgrade scripts are folded back into them. Import the schema then the seed into a fresh database, or re-run both against an existing one:
 
 ```bash
 mysql -u root circuit_cart < db_schema.sql
+mysql -u root circuit_cart < db_seed.sql
 ```
 
 The file is idempotent — table creation uses `IF NOT EXISTS` and every seed uses `ON DUPLICATE KEY UPDATE` or a `NOT EXISTS` guard — so re-running it never duplicates or overwrites existing rows. It does not alter tables that already exist, so apply a migration by hand (or rebuild from this file) when upgrading a database created before a schema change.
@@ -328,7 +329,7 @@ Tips:
 ## Troubleshooting
 
 - **"Access denied for user"** — check `DATABASE_USERNAME` / `DATABASE_PASSWORD` in `.env` match your server.
-- **Tables not found** — the database name in `.env` must match the one you imported into; re-run `mysql -u root circuit_cart < db_schema.sql`.
+- **Tables not found** — the database name in `.env` must match the one you imported into; re-run `mysql -u root circuit_cart < db_schema.sql` then `mysql -u root circuit_cart < db_seed.sql`.
 - **Images fail to upload** — confirm `storage/booking/` and `storage/bugs/` are writable by the web server user.
 - **User import fails** — confirm `storage/tmp/` is writable. Only `.xlsx`, `.xls` and `.csv` are accepted (macro-enabled `.xlsm` is rejected), up to 5 MB and 2000 data rows. Download the sample file from the import modal for the exact column layout.
 - **Base URL wrong in links** — set `BASE_URL` in `.env` to match the folder the app is served from.

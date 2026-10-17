@@ -9,7 +9,7 @@ This repository already contains working customer shopping and checkout flows, r
 ## Technology and layout
 
 - PHP application built on CodeIgniter 3.
-- MySQL/MariaDB database. `db_schema.sql` is the canonical schema and seed data source.
+- MySQL/MariaDB database. `db_schema.sql` is the canonical plain schema (structure only) and `db_seed.sql` the canonical demo seed data source; import the schema first, then the seed.
 - Bootstrap 5 UI, with local assets under `assets/`.
 - `application/controllers/` contains request handling; `application/models/` contains data access; `application/views/` contains templates and pages.
 - `application/config/routes.php` defines routes. `application/config/roles.php` defines employee roles and landing pages; keep these in sync with controller authorization.
@@ -34,7 +34,7 @@ Read `README.md`, relevant controllers/models/views, route and role configuratio
 - Escape dynamic output in views. Protect state-changing requests with the app’s CSRF and authorization conventions. Check both authentication and role authorization for every staff action, including direct route access.
 - Use database transactions for operations that must succeed or fail together, especially checkout, POS completion, refunds, and inventory changes.
 - Keep stock movements and money-related records auditable. Do not silently overwrite or delete records needed for sales, repair, or inventory history.
-- Make database changes in `db_schema.sql` and provide a safe upgrade path for existing installations when a change requires it. Preserve existing data and maintain compatibility with supported MySQL/MariaDB behavior.
+- Make database schema changes in `db_schema.sql` and seed/demo data changes in `db_seed.sql`, and provide a safe upgrade path for existing installations when a change requires it. Preserve existing data and maintain compatibility with supported MySQL/MariaDB behavior.
 - Do not store payment card numbers or security codes. Use a payment provider for card processing if that capability is requested.
 - Keep secrets and environment-specific credentials out of source control. Use the existing `.env` configuration approach.
 - Update README documentation, routes, role configuration, and seed/demo data when a feature changes those areas.
