@@ -112,7 +112,7 @@
                                             </a>
                                         <?php endif; ?>
                                         <?= form_open('storage/booking/finish/' . $booking['id']); ?>
-                                            <button type="submit" class="btn btn-sm btn-outline-dark" onclick="return confirm('Mark this repair as finished?')">Mark Finished</button>
+                                            <button type="submit" class="btn btn-sm btn-outline-secondary" onclick="return confirm('Mark this repair as finished?')">Mark Finished</button>
                                         <?= form_close(); ?>
                                     </div>
                                 </td>

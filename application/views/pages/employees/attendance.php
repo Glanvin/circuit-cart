@@ -62,7 +62,7 @@
 
         <div class="col-lg-8">
             <div class="card shadow-sm">
-                <div class="card-header bg-white d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="card-header bg-body d-flex flex-wrap align-items-center justify-content-between gap-2">
                     <strong>Attendance History</strong>
                     <span class="d-flex flex-wrap align-items-center gap-2">
                         <select id="attMonth" class="form-select form-select-sm" style="width: auto;">
@@ -104,7 +104,7 @@
                                         <td><?= html_escape($hours ?: '-') ?></td>
                                     </tr>
                                 <?php endforeach; ?>
-                                <tr class="table-light" id="attTotalRow">
+                                <tr class="table-secondary" id="attTotalRow">
                                     <td colspan="3" class="text-end fw-bold">Total</td>
                                     <td id="attTotalHours"><?= $totalMinutes > 0 ? gmdate('H:i', $totalMinutes) : '-' ?></td>
                                 </tr>

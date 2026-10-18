@@ -316,7 +316,7 @@
                                         </div>
                                     <?php endif; ?>
                                 <?php endif; ?>
-                                <button type="submit" class="btn btn-dark w-100">Mark Picked Up</button>
+                                <button type="submit" class="btn btn-primary w-100">Mark Picked Up</button>
                             <?= form_close() ?>
                         <?php endif; ?>
 

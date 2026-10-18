@@ -16,7 +16,7 @@
                 }
             ?>
             <?php if (!empty($part['image_path'])): ?>
-                <img src="<?= html_escape(product_image_url($part['image_path'])) ?>" id="mainProductImage" class="img-fluid w-100 rounded-4 border bg-white" alt="<?= $photoCredit ? 'Representative product photo' : html_escape($part['part_name']) ?>" style="max-height: 560px; object-fit: contain" fetchpriority="high">
+                <img src="<?= html_escape(product_image_url($part['image_path'])) ?>" id="mainProductImage" class="img-fluid w-100 rounded-4 border bg-body" alt="<?= $photoCredit ? 'Representative product photo' : html_escape($part['part_name']) ?>" style="max-height: 560px; object-fit: contain" fetchpriority="high">
                 <?php if ($photoCredit): ?><p class="small text-secondary text-end mt-2">Representative photo; check compatibility below. <a href="<?= html_escape($photoCredit['url']) ?>" target="_blank" rel="noopener noreferrer"><?= html_escape($photoCredit['author']) ?> / <?= html_escape($photoCredit['license']) ?></a></p><?php endif; ?>
             <?php else: ?>
                 <div class="product-detail-placeholder rounded-4 border bg-body-tertiary d-flex justify-content-center align-items-center" role="img" aria-label="No product image available"><i class="bi bi-image text-secondary fs-1" aria-hidden="true"></i></div>
@@ -108,7 +108,7 @@
                     <h2 class="h5">Compatible devices</h2>
                     <ul class="list-unstyled d-flex flex-wrap gap-2 mb-0">
                         <?php foreach ($part['compatibility'] as $device): ?>
-                            <li><span class="badge rounded-pill text-bg-light border fw-normal px-3 py-2"><?= html_escape($device) ?></span></li>
+                            <li><span class="badge rounded-pill text-body bg-body-secondary border fw-normal px-3 py-2"><?= html_escape($device) ?></span></li>
                         <?php endforeach; ?>
                     </ul>
                 </section>

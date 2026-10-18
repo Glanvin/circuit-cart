@@ -1,7 +1,7 @@
 <div class="container-fluid p-4">
     <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
         <span class="text-muted">Reviews post live on submit. Hide one to remove it from the storefront without deleting the record.</span>
-        <span class="badge text-bg-light border"><?= (int) ($total ?? 0) ?> review<?= (int) ($total ?? 0) === 1 ? '' : 's' ?></span>
+        <span class="badge text-body bg-body-secondary border"><?= (int) ($total ?? 0) ?> review<?= (int) ($total ?? 0) === 1 ? '' : 's' ?></span>
     </div>
 
     <form action="<?= site_url('employee/reviews') ?>" method="get" class="card border-0 shadow-sm mb-3">

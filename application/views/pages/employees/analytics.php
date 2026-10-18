@@ -84,7 +84,7 @@
     <div class="tab-content" id="analyticsTabsContent">
         <div class="tab-pane fade show active" id="pane-sales" role="tabpanel" data-chart="salesChart">
             <div class="card shadow-sm">
-                <div class="card-header bg-white d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="card-header bg-body d-flex flex-wrap align-items-center justify-content-between gap-2">
                     <span class="d-flex align-items-center gap-2">
                         <strong>Sales vs Online (Delivered)</strong>
                         <span class="text-muted small" data-count="#db-sales"></span>
@@ -127,7 +127,7 @@
 
         <div class="tab-pane fade" id="pane-users" role="tabpanel" data-chart="usersChart">
             <div class="card shadow-sm">
-                <div class="card-header bg-white d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="card-header bg-body d-flex flex-wrap align-items-center justify-content-between gap-2">
                     <span class="d-flex align-items-center gap-2">
                         <strong>User Registrations</strong>
                         <span class="text-muted small" data-count="#db-users"></span>
@@ -166,7 +166,7 @@
 
         <div class="tab-pane fade" id="pane-attendance" role="tabpanel" data-chart="attendanceChart">
             <div class="card shadow-sm">
-                <div class="card-header bg-white d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="card-header bg-body d-flex flex-wrap align-items-center justify-content-between gap-2">
                     <span class="d-flex align-items-center gap-2">
                         <strong>Employee Attendance</strong>
                         <span class="text-muted small" data-count="#db-attendance"></span>
@@ -205,7 +205,7 @@
 
         <div class="tab-pane fade" id="pane-inventory" role="tabpanel" data-chart="inventoryChart">
             <div class="card shadow-sm">
-                <div class="card-header bg-white d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <div class="card-header bg-body d-flex flex-wrap align-items-center justify-content-between gap-2">
                     <span class="d-flex align-items-center gap-2">
                         <strong>Current Inventory (lowest stock)</strong>
                         <span class="text-muted small" data-count="#db-inventory"></span>

@@ -41,7 +41,7 @@
             </div>
 
             <div class="card shadow-sm">
-                <div class="card-header bg-white">
+                <div class="card-header bg-body">
                     <strong>Products</strong>
                     <span class="text-muted small" id="posResultCount"></span>
                 </div>
@@ -63,7 +63,7 @@
 
         <div class="col-lg-5">
             <div class="card shadow-sm">
-                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                <div class="card-header bg-body d-flex justify-content-between align-items-center">
                     <strong>Sale Cart</strong>
                     <div class="d-flex gap-2">
                         <button type="button" class="btn btn-sm btn-outline-secondary" id="posOpenRefund">

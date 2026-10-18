@@ -22,7 +22,7 @@
                         </a>
                         <div class="card-body d-flex flex-column p-3">
                             <div class="small text-secondary mb-1"><?= html_escape($part['category']) ?> <span aria-hidden="true">&middot;</span> <?= html_escape($part['device_type']) ?></div>
-                            <h3 class="h6 fw-semibold mb-2"><a class="link-dark text-decoration-none stretched-link" href="<?= site_url('browse/' . $part['part_id']) ?>"><?= html_escape($part['part_name']) ?></a></h3>
+                            <h3 class="h6 fw-semibold mb-2"><a class="link-body-emphasis text-decoration-none stretched-link" href="<?= site_url('browse/' . $part['part_id']) ?>"><?= html_escape($part['part_name']) ?></a></h3>
                             <p class="fw-bold fs-5 mb-2">&#8369;<?= number_format((float) $part['selling_price'], 2) ?></p>
                             <?php if ((int) $part['stock_quantity'] > 0): ?>
                                 <p class="small text-success mb-3"><i class="bi bi-check-circle me-1" aria-hidden="true"></i>In stock</p>
